@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Jotunn Forge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=New+Rocker&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --void:#0A0D11;--iron:#161C23;--iron-2:#1E262F;--etch:#2E3944;--etch-hot:#4A5967;
+  --bone:#F6F2E9;--bone-dim:#AEBAC6;--ember:#FF8A3D;--ember-deep:#B03A08;--volt:#7DD8FF;--jade:#5BEFA6;--blood:#FF6B5C;--gold:#FFD166;
+  --f-rune:"New Rocker",Palatino,serif;--f-ui:"Archivo","Segoe UI",sans-serif;--f-num:"JetBrains Mono",ui-monospace,monospace;
+  --tier-s:var(--ember);--tier-a:var(--jade);--tier-b:var(--gold);--tier-c:var(--blood);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --cut:polygon(0 12px,12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+  --cut-br:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+}
+/* clip-path slices the 1px border off the cut corners; these layers redraw the diagonal in --cc.
+   Declared per element so --cc resolves on that element and follows its hover/pressed border. */
+.bt,.plate,.gcard,.board,.btn,.slot{--cc:var(--etch);
+  --corner-tl:linear-gradient(to bottom right,transparent 50%,var(--cc) 50%,var(--cc) calc(50% + 1.2px),transparent calc(50% + 1.2px)) 0 0/12px 12px no-repeat;
+  --corner-br:linear-gradient(to bottom right,transparent calc(50% - 1.2px),var(--cc) calc(50% - 1.2px),var(--cc) 50%,transparent 50%) 100% 100%/12px 12px no-repeat}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(980px 560px at 6% -12%,#2A1409 0%,transparent 58%),radial-gradient(820px 480px at 98% 2%,#08262F 0%,transparent 60%),var(--void);background-attachment:fixed;color:var(--bone);font-family:var(--f-ui);font-size:17px;font-weight:500;line-height:1.45;padding:0 20px 90px 96px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.035;z-index:0;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.6'/></svg>")}
+.wrap{max-width:1320px;margin-inline:auto;position:relative;z-index:1}
+::selection{background:var(--ember);color:#150800}
+::-webkit-scrollbar{width:12px;height:12px}::-webkit-scrollbar-track{background:var(--void)}::-webkit-scrollbar-thumb{background:var(--etch);border:3px solid var(--void)}::-webkit-scrollbar-thumb:hover{background:var(--ember-deep)}
+:focus-visible{outline:2px solid var(--volt);outline-offset:3px}
+a{color:var(--volt)}
+img.ic{display:block;object-fit:contain;image-rendering:auto;flex:none}
+.tile{display:grid;place-items:center;background:var(--iron-2);border:1px solid var(--etch);font-family:var(--f-rune);font-weight:400;color:var(--bone-dim);flex:none}
+
+/* rail */
+.rail{position:fixed;left:0;top:0;bottom:0;width:76px;z-index:20;background:linear-gradient(180deg,#0E1319,#0A0D11);border-right:1px solid var(--etch);display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 0;overflow-y:auto}
+.rail::-webkit-scrollbar{width:0}
+.rail a{position:relative;display:grid;place-items:center;width:56px;height:56px;border:1px solid transparent;text-decoration:none;flex:none;transition:transform .25s var(--ease),border-color .25s var(--ease),background .25s var(--ease)}
+.rail a img{width:42px;height:42px;filter:saturate(.75) brightness(.85)}
+.rail a:hover{background:var(--iron-2);border-color:var(--ember);transform:translateX(2px)}
+.rail a:hover img{filter:none}
+.rail a::after{content:attr(data-tier);position:absolute;right:2px;bottom:0;font-family:var(--f-num);font-size:10px;font-weight:700;color:var(--bone-dim)}
+.rail a[data-lab] img{width:34px;height:34px;margin-bottom:10px}
+.rail a[data-lab]::after{content:attr(data-lab);left:0;right:0;bottom:1px;text-align:center;font-size:8px;letter-spacing:.06em;text-transform:uppercase}
+.rail a[data-tier="S"]::after{color:var(--tier-s)}.rail a[data-tier="A"]::after{color:var(--tier-a)}.rail a[data-tier="B"]::after{color:var(--tier-b)}.rail a[data-tier="C"]::after{color:var(--tier-c)}
+.rail .sep{width:34px;height:1px;background:var(--etch);margin:6px 0;flex:none}
+.rail .lab{font-family:var(--f-num);font-size:9px;letter-spacing:.14em;color:var(--bone-dim);text-transform:uppercase;margin:4px 0 2px}
+
+/* masthead */
+.mast{display:grid;grid-template-columns:96px 1fr;gap:0 24px;align-items:center;padding-block:34px 14px}
+.mast .hero{width:96px;height:96px;animation:rise .9s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.92)}to{opacity:1;transform:none}}
+h1{font-family:var(--f-rune);font-weight:400;font-size:clamp(50px,8vw,92px);line-height:1;margin:0;color:var(--bone)}
+.bt .who{color:var(--bone);font-weight:700}
+
+/* build switcher */
+.switch{position:sticky;top:0;z-index:15;padding:10px 0 14px;transition:background .25s var(--ease)}
+.switch.stuck{background:linear-gradient(180deg,rgba(10,13,17,.97) 72%,rgba(10,13,17,0))}
+.switch .row{display:flex;flex-wrap:wrap;gap:8px}
+.bt{font:inherit;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center;text-align:left;background:var(--corner-tl),var(--corner-br),var(--iron);border:1px solid var(--etch);clip-path:var(--cut);padding:9px 16px 9px 10px;color:var(--bone);cursor:pointer;min-width:230px;transition:transform .25s var(--ease),border-color .25s var(--ease),background .25s var(--ease)}
+.bt img,.bt .tile{width:44px;height:44px;grid-row:span 2}
+.bt .n{font-weight:800;font-size:17px;letter-spacing:-.01em;line-height:1.1}
+.bt .k{font-family:var(--f-num);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-dim)}
+.bt:hover{transform:translateY(-2px);border-color:var(--etch-hot);--cc:var(--etch-hot)}
+.bt[aria-pressed="true"]{border-color:var(--ember);--cc:var(--ember);background:var(--corner-tl),var(--corner-br),linear-gradient(90deg,rgba(255,138,61,.16),var(--iron) 70%)}
+.bt[aria-pressed="true"] .k{color:var(--ember)}
+.bt:active{transform:scale(.98)}
+.bt.new{border-style:dashed;color:var(--bone-dim)}
+.status{font-family:var(--f-num);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid;white-space:nowrap}
+.st-tested{color:var(--jade);border-color:rgba(91,239,166,.5)}.st-community{color:var(--volt);border-color:rgba(125,216,255,.5)}.st-draft{color:var(--gold);border-color:rgba(255,209,102,.5)}.st-mine{color:var(--ember);border-color:rgba(255,138,61,.6)}
+
+/* sections */
+section{margin-top:50px;scroll-margin-top:92px}
+h2{font-family:var(--f-ui);font-weight:800;font-size:26px;letter-spacing:-.015em;text-transform:uppercase;margin:0 0 6px;display:flex;align-items:center;gap:14px}
+h2 .bar{flex:1;height:2px;background:linear-gradient(90deg,var(--ember),transparent);transform-origin:left;animation:sweep .9s var(--ease) both}
+@keyframes sweep{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.sub{color:var(--bone-dim);font-size:16px;margin:0 0 18px;max-width:78ch}
+.sub b{color:var(--bone);font-weight:600}
+.plate{background:var(--corner-tl),var(--corner-br),linear-gradient(165deg,var(--iron) 0%,rgba(10,13,17,.72) 130%);border:1px solid var(--etch);clip-path:var(--cut);padding:18px 20px 20px}
+h4{font-family:var(--f-num);font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ember);margin:0 0 12px}
+
+/* loadout */
+.build-head{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+.bname{font-family:var(--f-rune);font-size:clamp(30px,4vw,46px);font-weight:400;line-height:1.05;margin:0;color:var(--bone)}
+.charpill{display:inline-flex;align-items:center;gap:7px;font-family:var(--f-num);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 10px 2px 3px;border:1px solid rgba(255,138,61,.55);color:var(--ember);background:rgba(255,138,61,.08);white-space:nowrap}
+.charpill img,.charpill .tile{width:22px;height:22px;font-size:10px}
+.pill.diff{font-family:var(--f-num);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--jade);color:var(--jade);background:rgba(91,239,166,.08);white-space:nowrap}
+.pill.diff.untested{border-color:var(--etch-hot);color:var(--bone-dim);background:none}
+.thesis{font-size:16px;font-weight:500;line-height:1.5;margin:0 0 16px;color:var(--bone-dim);max-width:70ch}
+.thesis em{font-style:normal;color:var(--ember);font-weight:700}
+.slots{display:grid;grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:10px}
+@media (max-width:1100px){.slots{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:620px){.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slot{min-width:0;background:var(--corner-br),linear-gradient(180deg,var(--iron),rgba(10,13,17,.6));border:1px solid var(--etch);border-top:3px solid var(--etch-hot);clip-path:var(--cut-br);padding:14px 8px 12px;display:grid;gap:6px;justify-items:center;align-content:start;text-align:center;transition:transform .3s var(--ease),border-color .3s var(--ease)}
+.slot:hover{transform:translateY(-4px)}
+.slot.class{border-top-color:var(--ember)}.slot.god{border-top-color:var(--volt)}.slot.gear{border-top-color:var(--gold)}
+.slot .lab{font-family:var(--f-num);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--bone-dim)}
+.slot.class .lab{color:var(--ember)}.slot.god .lab{color:var(--volt)}.slot.gear .lab{color:var(--gold)}
+.slot img,.slot .tile{width:clamp(72px,7.2vw,104px);height:clamp(72px,7.2vw,104px);font-size:40px}
+.slot .nm{font-size:clamp(14px,1.25vw,17px);font-weight:800;line-height:1.15;overflow-wrap:break-word}
+.slot .alt{font-size:12.5px;color:var(--bone-dim);line-height:1.3;overflow-wrap:break-word}
+.slot .god-of{font-family:var(--f-num);font-size:10px;letter-spacing:.1em;color:var(--volt)}
+.pchips{display:grid;grid-template-columns:repeat(auto-fit,minmax(236px,1fr));gap:8px}
+#passives.pchips{grid-auto-flow:column;grid-template-rows:repeat(var(--rows,5),auto);grid-template-columns:repeat(2,1fr)}
+@media (max-width:620px){#passives.pchips{grid-auto-flow:row;grid-template-rows:none;grid-template-columns:1fr}}
+#innate.pchips{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.pchip{display:flex;min-width:0;align-items:center;gap:10px;padding:5px 12px 5px 5px;background:var(--iron-2);border:1px solid var(--etch);font-size:16px;font-weight:600;transition:transform .25s var(--ease),border-color .25s var(--ease)}
+.pchip:hover{transform:translateY(-2px);border-color:var(--ember)}
+.pchip b{font-family:var(--f-num);font-size:12.5px;color:var(--ember);width:20px;text-align:center;flex:none}
+.pchip img,.pchip .tile{width:46px;height:46px;font-size:18px}
+.pchip>span:last-child{min-width:0;flex:1;line-height:1.2;font-size:15px;overflow-wrap:break-word}
+.pchip i{display:block;font-style:normal;font-weight:500;font-size:13px;color:var(--bone-dim)}
+[data-tip]{cursor:help}
+#tip{position:fixed;z-index:50;left:0;top:0;max-width:280px;padding:7px 11px;background:var(--iron);border:1px solid var(--ember);font-size:13.5px;font-weight:500;line-height:1.35;color:var(--bone);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .18s var(--ease),transform .18s var(--ease)}
+#tip.on{opacity:1;transform:none}
+.pchip .g{display:block;font-family:var(--f-num);font-size:9.5px;letter-spacing:.1em;color:var(--volt);text-transform:uppercase;margin-top:2px}
+.play{padding:14px 16px;margin-top:16px;display:grid;gap:8px;background:var(--iron-2);border:1px solid var(--etch)}
+.play p{margin:0;font-size:16px}.play b{font-weight:700}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:980px){.two{grid-template-columns:1fr}}
+
+/* god boards */
+.gods-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin:16px 0}
+.gcard{--tc:var(--tier-b);display:grid;grid-template-rows:auto 64px 2.3em auto;align-content:start;justify-items:center;align-items:center;gap:6px;padding:8px 8px 12px;background:var(--corner-tl),var(--corner-br),var(--iron);border:1px solid var(--etch);clip-path:var(--cut);text-decoration:none;color:var(--bone);transition:transform .25s var(--ease),border-color .25s var(--ease)}
+.gcard:hover{transform:translateY(-3px);border-color:var(--tc);--cc:var(--tc)}
+.gcard[data-tier="S"]{--tc:var(--tier-s)}.gcard[data-tier="A"]{--tc:var(--tier-a)}.gcard[data-tier="C"]{--tc:var(--tier-c)}
+.gcard .t{font-family:var(--f-rune);font-size:30px;font-weight:400;line-height:1;color:var(--tc)}
+.gcard img,.gcard .tile{width:64px;height:64px;font-size:26px}
+.gcard .n{font-weight:800;font-size:14px;text-align:center;line-height:1.1}
+.gcard .why{align-self:start;font-size:11.5px;color:var(--bone-dim);text-align:center;line-height:1.2}
+.boards{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:14px;align-items:start}
+@media (max-width:600px){.boards{grid-template-columns:1fr}}
+.board{background:var(--corner-tl),var(--corner-br),linear-gradient(165deg,var(--iron) 0%,rgba(10,13,17,.7) 140%);border:1px solid var(--etch);clip-path:var(--cut);padding:0 0 8px;scroll-margin-top:92px}
+.board header{display:flex;align-items:center;gap:12px;padding:12px 16px 10px;border-bottom:1px solid var(--etch);background:linear-gradient(90deg,rgba(255,138,61,.08),transparent 60%)}
+.board header img,.board header .tile{width:46px;height:46px;font-size:18px}
+.board header h3{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:-.015em;margin:0}
+.board header em{font-family:var(--f-num);font-size:12.5px;font-style:normal;font-weight:700;padding:3px 10px;border:1px solid var(--etch-hot);color:var(--bone-dim)}
+.board header em.S{color:var(--tier-s);border-color:var(--tier-s)}.board header em.A{color:var(--tier-a);border-color:var(--tier-a)}.board header em.B{color:var(--tier-b);border-color:var(--tier-b)}.board header em.C{color:var(--tier-c);border-color:var(--tier-c)}.board header em.cls{color:var(--volt);border-color:rgba(125,216,255,.5)}
+.row{display:grid;grid-template-columns:64px 1fr;border-bottom:1px solid rgba(46,57,68,.55)}
+.row:last-child{border-bottom:none}
+.row .side{display:grid;place-items:center;align-content:center;gap:3px;padding:12px 6px;font-family:var(--f-num);font-size:15px;font-weight:700;text-align:center;border-right:1px solid rgba(46,57,68,.55)}
+.row .side span{font-size:9px;letter-spacing:.1em;line-height:1.3;color:var(--bone-dim);font-weight:500}
+.row.pick .side span{font-size:10px;font-weight:700;color:var(--ember)}
+.row.pick{background:linear-gradient(90deg,rgba(255,138,61,.08),transparent 55%);box-shadow:inset 2px 0 0 var(--ember)}
+.row.pick .side{border-right-color:rgba(255,138,61,.25)}
+.row.S .side{color:var(--tier-s)}.row.A .side{color:var(--tier-a)}.row.B .side{color:var(--tier-b)}.row.F .side{color:var(--tier-c)}
+.cards{display:flex;flex-wrap:wrap;gap:6px;padding:9px 12px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;background:var(--iron-2);border:1px solid var(--etch);font-size:15px;font-weight:600;line-height:1.2;transition:transform .22s var(--ease),border-color .22s var(--ease)}
+.chip:hover,.chip:focus-visible{transform:translateY(-2px);border-color:var(--ember)}
+.row.pick .chip{border-color:rgba(255,138,61,.35)}
+.chip>span:last-child{min-width:0;overflow-wrap:break-word}
+.chip img,.chip .tile{width:40px;height:40px;font-size:16px}
+.chip .tag{display:block;margin-top:2px;font-family:var(--f-num);font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--volt);text-transform:uppercase}
+.row.B .chip,.row.F .chip{font-size:13.5px;padding:3px 10px 3px 3px;gap:6px}.row.B .chip img,.row.F .chip img,.row.B .chip .tile,.row.F .chip .tile{width:28px;height:28px;font-size:12px}
+.row.F .chip{opacity:.8}.row.F .chip:hover{opacity:1}
+.fold{display:none}.board.open .fold{display:grid}
+.board .more{font:inherit;font-family:var(--f-num);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-dim);background:none;border:0;border-top:1px solid rgba(46,57,68,.55);width:100%;padding:8px;cursor:pointer;text-align:left}
+.board .more:hover{color:var(--ember)}
+
+/* priority track */
+ol.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:9px}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:center;background:linear-gradient(90deg,var(--iron),transparent 76%);border-top:1px solid var(--etch);padding:11px 16px;transition:transform .3s var(--ease)}
+ol.steps li:hover{transform:translateX(6px)}
+ol.steps li::before{content:counter(s);font-family:var(--f-rune);font-size:32px;font-weight:400;color:var(--ember);text-align:center;line-height:1}
+ol.steps span{display:block;font-size:14.5px;color:var(--bone-dim);font-weight:500}
+.track{position:relative;margin:26px 0 8px;height:128px;border-left:1px solid var(--etch);border-right:1px solid var(--etch)}
+.track .line{position:absolute;top:32px;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--etch),var(--ember-deep),var(--ember));transform-origin:left;animation:sweep 1s var(--ease) both}
+.mark{position:absolute;top:0;transform:translateX(-50%);text-align:center;width:110px}
+.mark .lv{font-family:var(--f-num);font-size:13px;letter-spacing:.08em}
+.mark .dot{width:14px;height:14px;margin:25px auto 0;background:var(--void);border:2px solid var(--ember);transform:rotate(45deg)}
+.mark.big .dot{width:20px;height:20px;margin-top:22px;border-color:var(--gold);background:rgba(255,209,102,.14)}
+.mark .what{font-size:13.5px;color:var(--bone-dim);line-height:1.2;margin-top:9px;font-weight:600}
+.mark.big .what{color:var(--gold)}
+@media (max-width:900px){.track{height:176px}.mark{width:74px}}
+
+/* virtues */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.vrow{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 10px 8px 0;background:var(--iron);border:1px solid var(--etch)}
+.vrow img,.vrow .tile{width:56px;height:56px;font-size:22px}
+.vn{font-size:16px;font-weight:700;line-height:1.2}.vn i{display:block;font-style:normal;font-weight:500;font-size:13px;color:var(--bone-dim)}
+.vn .t{font-family:var(--f-num);font-size:9.5px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.vs{font-family:var(--f-num);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid;white-space:nowrap}
+.v-own .vs{color:var(--bone-dim);border-color:var(--etch);opacity:.7}.v-own img{filter:saturate(.5) brightness(.7)}
+.v-part .vs{color:var(--gold);border-color:rgba(255,209,102,.5);background:rgba(255,209,102,.1)}
+.v-buy .vs{color:var(--volt);border-color:rgba(125,216,255,.4)}
+.v-next{border-color:rgba(255,138,61,.45);background:linear-gradient(90deg,rgba(255,138,61,.1),var(--iron))}.v-next .vs{color:#150800;background:var(--ember);border-color:var(--ember)}
+
+/* tables */
+.scroll{overflow-x:auto;border:1px solid var(--etch);background:rgba(22,28,35,.8)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-family:var(--f-num);font-size:10.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--bone-dim);text-align:left;padding:10px 14px;background:var(--iron-2);border-bottom:1px solid var(--etch);white-space:nowrap}
+td{padding:8px 14px;border-bottom:1px solid rgba(46,57,68,.5);font-size:15.5px}
+tbody tr:hover{background:rgba(255,138,61,.07)}tbody tr:last-child td{border-bottom:none}
+td.k{font-weight:700;white-space:nowrap}td.k img,td.k .tile{width:36px;height:36px;vertical-align:middle;margin-right:10px;display:inline-grid;font-size:14px}
+td.n,th.n{font-family:var(--f-num);font-size:13.5px;white-space:nowrap;text-align:right}
+td.d{color:var(--bone-dim);font-size:14.5px;min-width:150px}
+@media (max-width:980px){.two[style]{grid-template-columns:1fr!important}}
+tr.hot td{background:rgba(255,138,61,.07)}tr.dim td{color:var(--bone-dim)}
+.meter{height:10px;background:var(--iron-2);border:1px solid var(--etch);min-width:90px}
+.meter i{display:block;height:100%;transform-origin:left;background:linear-gradient(90deg,var(--ember-deep),var(--ember));animation:fill .9s var(--ease) both}
+.meter.cold i{background:linear-gradient(90deg,#1B6E8C,var(--volt))}.meter.dead i{background:var(--etch-hot)}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.pill{font-family:var(--f-num);font-size:10.5px;font-weight:700;letter-spacing:.12em;padding:3px 9px;white-space:nowrap;border:1px solid}
+.p-take{color:var(--jade);border-color:rgba(91,239,166,.45);background:rgba(91,239,166,.09)}.p-skip{color:var(--blood);border-color:rgba(255,107,92,.45);background:rgba(255,107,92,.09)}.p-ok{color:var(--gold);border-color:rgba(255,209,102,.45);background:rgba(255,209,102,.09)}
+.finding{display:grid;grid-template-columns:96px 1fr;gap:10px 14px;padding:12px 0;border-top:1px solid var(--etch)}
+.finding .k{font-family:var(--f-num);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding-top:4px}
+.finding .k.ok{color:var(--jade)}.finding .k.no{color:var(--blood)}.finding .k.open{color:var(--gold)}
+.finding p{margin:0 0 6px;font-size:15.5px}.finding p:last-child{margin:0}
+.caveat{font-size:13.5px;color:var(--bone-dim)}
+
+/* editor */
+.editor{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:900px){.editor{grid-template-columns:1fr}}
+.editor label{display:grid;gap:4px;font-family:var(--f-num);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-dim)}
+.editor input,.editor select,.editor textarea{font:inherit;font-family:var(--f-ui);font-size:15px;color:var(--bone);background:var(--iron-2);border:1px solid var(--etch);padding:8px 10px;width:100%}
+.editor textarea{min-height:70px;resize:vertical}
+.editor .full{grid-column:1/-1}
+.tiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.tiers label{flex-direction:row;display:flex;align-items:center;gap:8px;background:var(--iron);border:1px solid var(--etch);padding:6px 8px}
+.tiers select{width:auto;padding:4px 6px}
+.list{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:6px;border:1px dashed var(--etch)}
+.list button{font:inherit;font-size:13px;background:var(--iron-2);border:1px solid var(--etch);color:var(--bone);padding:4px 8px;cursor:pointer}
+.list button:hover{border-color:var(--blood);color:var(--blood)}
+.btn{font:inherit;font-size:14px;font-weight:700;padding:9px 16px;border:1px solid var(--etch-hot);--cc:var(--etch-hot);background:var(--corner-tl),var(--corner-br),var(--iron-2);color:var(--bone);cursor:pointer;clip-path:var(--cut);transition:transform .2s var(--ease)}
+.btn:active{transform:scale(.98)}.btn.primary{background:var(--ember);border-color:var(--ember);color:#150800}.btn.quiet{color:var(--bone-dim)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.note{font-family:var(--f-num);font-size:12px;color:var(--bone-dim)}
+
+/* rules strip */
+.rules{position:fixed;left:76px;right:0;bottom:0;z-index:18;display:flex;flex-wrap:wrap;align-items:center;background:linear-gradient(180deg,rgba(10,13,17,.94),#0A0D11);border-top:1px solid var(--etch-hot);font-family:var(--f-num);font-size:12px;letter-spacing:.04em;padding:9px 20px;color:var(--bone-dim)}
+.rules b{color:var(--bone);font-weight:500}.rules span{padding:0 14px;border-right:1px solid var(--etch)}.rules span:last-child{border-right:none}.rules em{font-style:normal;color:var(--ember);font-weight:700}
+footer{margin-top:56px;border-top:2px solid var(--etch);padding-top:16px;font-family:var(--f-num);font-size:12px;line-height:1.9;color:var(--bone-dim)}
+.empty{font-family:var(--f-num);font-size:13px;color:var(--bone-dim);padding:10px 4px}
+
+@media (max-width:900px){
+  body{padding:0 16px 24px}
+  .switch .row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
+  .switch .row::-webkit-scrollbar{height:0}
+  .bt{min-width:210px;flex:none}
+  .rules{position:static;margin:32px -16px 0}
+  .rail{position:static;width:auto;flex-direction:row;border-right:none;border-bottom:1px solid var(--etch);padding:8px 4px;gap:4px;overflow-x:auto;margin:0 -16px 8px}
+  .rail .sep{width:1px;height:34px;margin:0 6px}.rail .lab{display:none}
+  .rules{left:0}
+  .mast{grid-template-columns:66px 1fr;padding-block:22px 12px}.mast .hero{width:66px;height:66px}
+  .boards{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<nav class="rail" id="rail" aria-label="Jump to"></nav>
+
+<div class="wrap">
+<header class="mast">
+  <img class="hero" id="heroIcon" alt="Warden">
+  <div>
+    <h1>Jotunn Forge</h1>
+  </div>
+</header>
+
+<div class="switch" id="switch"><div class="row" id="buildRow"></div></div>
+
+<!-- 1 LOADOUT -->
+<section id="loadout">
+  <h2>The loadout<span class="bar"></span></h2>
+  <div class="plate">
+    <div class="build-head">
+      <h3 class="bname" id="buildName"></h3>
+      <span class="charpill" id="charPill"></span>
+      <span class="pill diff" id="diffPill"></span>
+    </div>
+    <p class="thesis" id="thesis"></p>
+    <div class="slots" id="slots"></div>
+    <div class="two" style="margin-top:14px">
+      <div><h4>Passives · pick order</h4><div class="pchips" id="passives"></div></div>
+      <div><h4>Innate</h4><div class="pchips" id="innate"></div><div class="play" id="play"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 GODS -->
+<section id="gods">
+  <h2>Gods<span class="bar"></span></h2>
+  <div class="gods-strip" id="godStrip"></div>
+  <div class="boards" id="boards"></div>
+</section>
+
+<!-- 3 ORDER -->
+<section id="order">
+  <h2>Pick order by level<span class="bar"></span></h2>
+  <div class="plate">
+    <ol class="steps" id="steps"></ol>
+    <div class="track" id="track"><div class="line"></div></div>
+  </div>
+</section>
+
+<!-- 4 PASSIVES + POINTS -->
+<section id="points">
+  <h2>Temple virtues to buy<span class="bar"></span></h2>
+  <div class="vgrid" id="virtues"></div>
+</section>
+
+<!-- 5 RUNS -->
+<section id="runs">
+  <h2>Runs: evolve early, survive the boss<span class="bar"></span></h2>
+  <p class="sub">Two wins: <b>Hard</b> with Skadi · Thor · Odin, <b>Insane + Railyard</b> with Thor · Freya · Brokk.</p>
+  <div class="two">
+    <div class="scroll"><table>
+      <thead><tr><th></th><th class="n">Hard</th><th class="n">Insane</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Enemy scaling</td><td class="n">210%</td><td class="n">250%</td></tr>
+        <tr><td class="k">Core 4 evolved by</td><td class="n">29.3 min</td><td class="n">15.8 min</td></tr>
+        <tr><td class="k">Damage dealt</td><td class="n">131,799</td><td class="n">266,329</td></tr>
+        <tr><td class="k">Damage taken</td><td class="n">350 · 33 hits</td><td class="n">735 · 61 hits</td></tr>
+        <tr><td class="k">Taken, min 10–20</td><td class="n">0</td><td class="n">0</td></tr>
+        <tr class="hot"><td class="k">Taken in boss window</td><td class="n">52</td><td class="n">522 · 7 hits</td></tr>
+      </tbody></table></div>
+    <div class="scroll"><table id="theory">
+      <thead><tr><th>Skill held</th><th class="n">Theory dps</th><th class="n">Measured share</th><th></th></tr></thead>
+      <tbody></tbody></table></div>
+  </div>
+  <p class="caveat" style="margin-top:8px">Theory = damage ÷ cooldown at rank 3, one target. Measured = share of tracked damage in the run that held it.</p>
+  <div style="margin-top:18px">
+    <div class="finding"><div class="k no">Guide gap</div><div><p><b>Six-god priority lists</b> can't be followed in a three-god run. The god boards rank picks within each god instead.</p></div></div>
+    <div class="finding"><div class="k ok">Confirmed</div><div><p><b>Four actives carry the damage:</b> Ball Lightning, Iron Fist, Magnetized Anvil, Mjolnir. Mjolnir took a 13% share evolved at 29 min and 21% evolved at 14 min, so evolve order is the biggest lever.</p></div></div>
+    <div class="finding"><div class="k open">Open</div><div><p><b>Arctic Arrow is crowd control</b> (100% freeze, 3 s). The game logs damage, not freezes. 331 damage in 27 minutes is ~10 hits; a freeze needs a hit. Test: Skadi · Thor · Odin on Hard, Arctic Arrow as the only god active until minute 10. Under 1,000 damage = the arrows are not landing.</p><p class="caveat">Some bosses are freeze-immune. The Construct's final-phase rays linger 1 s after the red zones vanish, worst on Nightmare.</p></div></div>
+    <div class="finding"><div class="k open">Open</div><div><p><b>Valkyrie Descent on bosses.</b> Rank 3, never evolved, 100% slow. The logs can't split damage by target, so its boss damage is unmeasured.</p></div></div>
+    <div class="finding"><div class="k ok">Pattern</div><div><p><b>The boss decides the run.</b> Zero damage taken in minutes 10–20 of both runs; 71% of Insane damage taken came in the last 4 minutes.</p></div></div>
+    <div class="finding"><div class="k open">Next test</div><div><p><b>Nightmare 2 (310%)</b> with Thor · Freya · Brokk and the Insane run's picks. Record damage taken in the last 4 minutes and the minute the 4th active evolves.</p></div></div>
+  </div>
+</section>
+
+<!-- LADDER -->
+<section id="ladder">
+  <h2>Ladder &amp; Endless<span class="bar"></span></h2>
+  <p class="sub"><b>Enemy damage scales with the tier.</b> Per-hit median after your mitigation: troll spitter 24 → 27.5 → 29.8 across Normal → Hard → Insane; Construct 63 → 112.</p>
+  <div class="two" style="grid-template-columns:minmax(0,5fr) minmax(0,7fr)">
+    <div class="scroll"><table>
+      <thead><tr><th>Svartalfheim</th><th class="n">Enemy</th><th class="n">Resources</th><th class="n">Raid</th></tr></thead>
+      <tbody>
+        <tr class="dim"><td class="k">Normal</td><td class="n">180%</td><td class="n">+95%</td><td class="n">15:00 · 4</td></tr>
+        <tr class="dim"><td class="k">Hard</td><td class="n">210%</td><td class="n">+130%</td><td class="n">17:00 · 5</td></tr>
+        <tr class="hot"><td class="k">Insane · cleared</td><td class="n">250%</td><td class="n">+195%</td><td class="n">20:00 · 6</td></tr>
+        <tr><td class="k">Nightmare 1</td><td class="n">290%</td><td class="n">+225%</td><td class="n">20:00 · 6</td></tr>
+        <tr><td class="k">Nightmare 2</td><td class="n">310%</td><td class="n">+245%</td><td class="n">20:00 · 6</td></tr>
+        <tr><td class="k">Nightmare 5</td><td class="n">370%</td><td class="n">+305%</td><td class="n">20:00 · 6</td></tr>
+        <tr><td class="k">Nightmare 10</td><td class="n">470%</td><td class="n">+405%</td><td class="n">20:00 · 6</td></tr>
+        <tr><td class="k">Endless</td><td class="n">230%</td><td class="n">+130%</td><td class="n" style="white-space:normal">∞ · boss every 10 min · torment every 3 min</td></tr>
+        <tr class="dim"><td class="k">Endless Relax</td><td class="n">160%</td><td class="n">+65%</td><td class="n">∞ · no boss, no torment</td></tr>
+      </tbody></table></div>
+    <div class="scroll"><table>
+      <thead><tr><th>Torment</th><th>Effect</th><th class="n">Appears</th><th class="n">Max</th></tr></thead>
+      <tbody>
+        <tr class="hot"><td class="k">Endless Agony</td><td class="d">enemy damage + health</td><td class="n">T5</td><td class="n">+20%</td></tr>
+        <tr><td class="k">Greedy Masochist</td><td class="d">enemy damage</td><td class="n">T2</td><td class="n">+40% T8</td></tr>
+        <tr><td class="k">Weakness</td><td class="d">your damage</td><td class="n">T3</td><td class="n">−30% T7</td></tr>
+        <tr><td class="k">Incompetence</td><td class="d">cooldowns · <span class="pill p-skip">never</span></td><td class="n">T6</td><td class="n">+30% T8</td></tr>
+        <tr><td class="k">Fizzled Magic</td><td class="d">skill fizzle · <span class="pill p-skip">never</span></td><td class="n">T4</td><td class="n">30% T8</td></tr>
+        <tr><td class="k">Slow Hands</td><td class="d">attack speed</td><td class="n">T4</td><td class="n">−30% T8</td></tr>
+        <tr><td class="k">Blood Loss</td><td class="d">max health</td><td class="n">T5</td><td class="n">−30% T7</td></tr>
+        <tr><td class="k">Grip of Pestilence</td><td class="d">healing power</td><td class="n">T4</td><td class="n">−50% T8</td></tr>
+        <tr><td class="k">Flame Shield</td><td class="d">enemies spawn shielded</td><td class="n">T2</td><td class="n">150 HP · 20%</td></tr>
+        <tr><td class="k">Evil Dead</td><td class="d">enemies invulnerable 5 s</td><td class="n">T1</td><td class="n">14% T7</td></tr>
+        <tr><td class="k">The Gathering</td><td class="d">elite wave interval</td><td class="n">T3</td><td class="n">40 s T7</td></tr>
+        <tr><td class="k">Heavy Burden</td><td class="d">move speed</td><td class="n">T1</td><td class="n">−20% T7</td></tr>
+        <tr><td class="k">Blind Choice</td><td class="d">hidden cards · <span class="pill p-take">safe</span></td><td class="n">T1</td><td class="n">70% T7</td></tr>
+        <tr><td class="k">Bad Cards</td><td class="d">worse cards · <span class="pill p-take">safe</span></td><td class="n">T1</td><td class="n">100% T7</td></tr>
+        <tr class="dim"><td class="k">Talentless Child</td><td class="d">experience</td><td class="n">T5</td><td class="n">−25% T7</td></tr>
+        <tr class="dim"><td class="k">Child Rations</td><td class="d">pickups (chance)</td><td class="n">T1</td><td class="n">75% T5</td></tr>
+        <tr class="dim"><td class="k">Greedglut · Toxic Runoff · Mental Decay</td><td class="d">gold · hazard damage · interaction time</td><td class="n">T2–T4</td><td class="n"></td></tr>
+      </tbody></table></div>
+  </div>
+  <p class="caveat" style="margin-top:8px">Cleansing Amulet removes one torment.</p>
+</section>
+
+<!-- EDITOR -->
+<section id="forge">
+  <h2>Forge a build<span class="bar"></span></h2>
+  <p class="sub">Starts as a copy of the build on screen. Save adds it to the switcher.</p>
+  <div class="plate">
+    <div class="editor">
+      <label>Name<input id="eName" type="text"></label>
+      <label>Status<select id="eStatus"><option value="draft">draft</option><option value="tested">tested · won</option><option value="failed">tested · died</option></select></label>
+      <label>Weapon<input id="eWeapon" type="text" list="weaponList"><datalist id="weaponList"><option>Dwarven Hammer</option><option>Craftsman's Hammer</option><option>Gear Wheel</option><option>War Machine</option><option>Throwing Mallet</option><option>Njord Festival</option><option>Call of the Ancestors</option></datalist></label>
+      <label>Subclass<select id="eSub"><option>Shieldbearer</option><option>Adventurer</option><option>Weapon Master</option></select></label>
+      <label>Class active 1<select id="eC1"></select></label>
+      <label>Class active 2<select id="eC2"></select></label>
+      <label>God active 1<select id="eG1"></select></label>
+      <label>God active 2<select id="eG2"></select></label>
+      <label>God active 3<select id="eG3"></select></label>
+      <label>Add a passive (in order)<select id="ePassAdd"><option value="">— pick —</option></select></label>
+      <div class="full"><label>Passive order — click to remove</label><div class="list" id="ePassList"></div></div>
+      <div class="full"><label>God tiers</label><div class="tiers" id="eTiers"></div></div>
+      <label class="full">Thesis (one line)<input id="eThesis" type="text"></label>
+      <label class="full">Notes<textarea id="eNotes"></textarea></label>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="eSave">Save build</button>
+      <button class="btn" id="eFork">Reset to current build</button>
+      <button class="btn quiet" id="eDelete" hidden>Delete this build</button>
+      <span class="note" id="storeNote">Builds save to this page's database.</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Sources: installed game (build 1.2.3.94815) and your analytics logs, read 2026-09-12. The runs shown are the two wins logged 2026-09-12; damage is the game's own per-skill counter at run end, and weapon damage is not tracked. The current logs have no per-target attribution (the 2025 build's did), and enemy HP is not logged. Torments from the game's curse table; how the tier climbs is not in the data. Icons from the game's UI bundle. Card grades from the skill table and your runs on Normal, Hard and Insane; Frost Bastion is untested in your logs and comes from the Steam guide <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3632546298">Warden Endless Screensaver Build</a>. Boss and torment notes from Steam threads (<a href="https://steamcommunity.com/app/2820820/discussions/0/691994648689812493/">Best Build</a>, <a href="https://steamcommunity.com/app/2820820/discussions/0/685240346635024627/">Construct</a>); the lingering Construct rays are a dev-acknowledged bug.
+</footer>
+</div>
+
+<div class="rules"><span><em>1</em> rank up what you hold</span><span><em>2</em> fill an empty slot</span><span><em>3</em> take the S</span><span><em>4</em> take the A</span><span><em>5</em> otherwise reroll</span><span>caps: <b>2 class · 3 god · 3 gods</b></span></div>
+
+<script src="skills.js"></script>
+<script src="icons.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const ICONS=window.ICONS||{};const SKILLS=window.SKILLS||[];
+const GODS=["Thor","Brokk & Sindri","Odin","Freya","Skadi","Njord","Loki","Nidhogg","Nerthus"];
+const norm=n=>String(n||"").replace(/’/g,"'");
+function ico(name,cls,size){
+  const src=ICONS[norm(name)]||ICONS[name];
+  if(src)return `<img class="ic ${cls||""}" src="${src}" alt="${esc(name)}">`;
+  const init=String(name||"?").split(/\s+/).map(w=>w[0]).join("").slice(0,2);
+  return `<span class="tile ${cls||""}">${esc(init)}</span>`;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+const godOf=new Map(SKILLS.map(s=>[norm(s.name),s.god]));
+const ALIAS={"Snow Flake":"Snowflake","Gambanteinn":"Gambateinn","Rune Mastery":"Magic in Veins","Opulence":"Oppulence","Earth Core":"Iron Core","Stacked & Loaded":"Stack & Loaded","Nasty Tricks":"Unpleasant Tricks","Ray of Sickness":"Ray(s) of Sickness","Tricks of the Trade":"Tricks of Trade","Jörmungandr":"Jormungandr","Sleipnir's Speed":"Sleipnir's Speed"};
+function god(name){return godOf.get(norm(name))||godOf.get(norm(ALIAS[name]||""))||"Warden"}
+function kindOf(name){const s=SKILLS.find(x=>norm(x.name)===norm(name)||norm(x.name)===norm(ALIAS[name]||""));return s?s.kind:"passive"}
+
+/* ---------- every card, graded (base grades; builds override rows they care about) ---------- */
+const CARDS={
+ "Warden":{S:[["Magnetized Anvil","24 + 18 dmg on a 2 s cooldown",1],["Iron Fist","22 dmg ×4, 15% stun; feeds Pulverize",1],["Pulverize","+25% damage to anything stunned · L8"]],A:[["Law & Order","+24% god skill damage"],["Resonance","15% cooldown reset per stun · L15"],["Blunt Force","7% stun on every attack"]],B:[["Shieldwall","",1],["Rock Solid"],["Mithril Hammer"],["Barricade"],["Deafening Impact"],["Punish"],["Bottomless Stomach"],["Earthquake"]],F:[["Hammertime","",1],["Seismic Shock","",1],["Retribution"],["Blood & Thunder"],["Tremors"],["Rebound"],["Last Vigilance"]]},
+ "Thor":{S:[["Mjolnir","30 dmg, pierces 12 m out and back · 21% of Insane damage",1],["Ball Lightning","20 dmg on a 1.75 s cooldown · top damage in both runs",1],["Overwhelming Potential","+40% to every Thor lightning skill"],["Might of Megingjord","+36% god skill damage"]],A:[["Thunderstorm","10 strikes × 20 dmg",1],["Devastating Hit","+10% crit chance, +30% crit damage · L8"]],B:[["Goat Feast"],["Lightning Nova"],["Sentinel","",1]],F:[["Lightning Strike","",1],["Explosive Nature"],["Static Charge"],["Blows of Jarngreipr"],["Discharge"]]},
+ "Brokk & Sindri":{S:[["Mannaz","+45% class skill damage"],["Ansuz","+45% god skill damage"]],A:[["Inguz","+36% crit damage, class and god"],["Teiwaz","+45% attack damage"],["Berkana","+220 max health"]],B:[["Perth"],["Raido"],["Hagalaz"],["Thurisaz"],["Uruz"],["Laguz"],["Eiwaz"]],F:[["Kaunaz"],["Gebo"],["Jera"]]},
+ "Odin":{S:[["King of Gods","+30% damage and +15% crit"]],A:[["Concentration","−20% cooldowns while standing still · L8"],["Worthy Opponent","+5% damage, +20% against elites"],["Sleipnir's Speed","+30% attack speed"],["Runic Boulder","30 dmg, rolls through a line · 8% share on Normal",1]],B:[["Rune Mastery","+5% double cast, heals 7"],["Older than Time"],["Overlord"],["Self-sacrifice"],["Ragnarok","",1]],F:[["Gungnir","",1],["Huginn & Munnin","",1],["Einherjar","",1],["Blood Ritual"]]},
+ "Freya":{S:[["Guidance","+60% class skill damage"]],A:[["Valkyrie Descent","35 dmg + 100% slow",1],["Radiant Echo","21% chance to cast twice"],["Last Stand","+15% crit while standing still"]],B:[["Heroic Hymn"],["Auric Charm"]],F:[["Gambanteinn","",1],["Divine Wave","",1],["Golden Discs","",1],["Seidr Blessing","",1],["Clairvoyance"],["Brisingamen"],["Gold is Life"],["Godlike Appeal"]]},
+ "Skadi":{S:[["Frost Armor","−24% damage taken; scales with every hit"]],A:[["Arctic Arrow","2 arrows, 100% freeze 3 s · CC, 0.3% of damage on Hard",1],["Hypothermia","+20% class damage and −20% CD under 40% HP"],["Crystal Comet","35 dmg, 4 m, 75% slow",1]],B:[["Snow Flake","",1],["Frostbite"],["Cool Runnings"],["Ice Block","invulnerable on level up"]],F:[["Frost Ring","10 dmg on 4.5 s · out-damaged Mjolnir on Normal, still CC",1],["Ice Surface","",1],["Snow Fight"],["Wintergrasp"],["Cold Feet"],["Fimbulwinter"]]},
+ "Njord":{S:[["Torrents","−20% class and god cooldowns"]],A:[["Salted Wounds","+25% damage to enemies under half health"],["Crashing Wave","100% stun whenever the weapon skill fires"]],B:[["Lost Drakkar","",1],["Fish Dinner","heal per level up"],["Downpour of Fish"],["Leviathan","",1]],F:[["Kraken","",1],["Vortex","",1],["Water Bubble","",1],["Sea Legs"],["Ebb & Swell"],["Bottomless Wealth"],["Mighty Oars"]]},
+ "Loki":{S:[],A:[["Parasite","12 × 10 dmg on a 2.25 s cooldown",1],["Gambler's Luck","+30% crit damage"],["Tricks of the Trade","+12% double cast"]],B:[["Spark","",1],["Jotunn's Blood"],["Elusive Trickster"],["Jörmungandr","",1]],F:[["Vipers","",1],["Flammable Wall","",1],["Nasty Tricks"],["Stacked & Loaded"],["Special Delivery"],["Shapeshifter"],["Ripped Lottery"]]},
+ "Nidhogg":{S:[],A:[["No Remorse","+24% all damage"],["Raise Dead","28 dmg/s zone, 100% slow",1]],B:[["Ray of Sickness","",1],["Vigor"],["Corpse-eater"],["Fatal Trauma"],["Calamitous Breath","",1]],F:[["Crushing Fear","",1],["Wing Attack","",1],["Bone Claw"],["Sheer Terror"],["Opulence"],["Wings of Fury"],["All In","blocks healing"]]},
+ "Nerthus":{S:[],A:[["Swiftness","+14% attack and movement speed"],["Cure Wounds","+40% healing and +2 regen"]],B:[["Hailstorm","",1],["Strangling Vines","",1],["Magic Fangs"],["Barkskin","caps a hit at half your health"],["Spike Growth"]],F:[["Dire Beast","",1],["Hornet Swarm","",1],["Grove Guardian","",1],["Gift of Nature"],["Earth Core"],["Fertility"],["Roots of Yggdrasil"]]}
+};
+
+/* ---------- virtues (temple shop) with ownership from the 2026-09-12 log ---------- */
+const VIRTUES={
+ "Militia Training":["Warden","+35% class skill damage","own"],"Gourmand":["Warden","+56% healing from food","own"],"Seasoned Soldier":["Warden","+32% attack speed","own"],
+ "Power":["Thor","+25% all damage","own"],"Sturdiness":["Thor","+150 max health","own"],"Recovery":["Thor","+3 HP/s","own"],"Massacre":["Thor","+15% slay chance","own"],
+ "Defence":["Freya","−20% damage taken","own"],"Resolution":["Freya","+25% attack speed","own"],"Revival":["Freya","+1 revive","own"],
+ "Prowess":["Odin","+20% attack damage","own"],"Farsight":["Odin","+25% experience","own"],"Defiant":["Odin","+1 blasphemy","own"],"Yule Father":["Odin","+10% double skill or reward","own"],
+ "Calmness":["Skadi","−15% cooldowns","next"],"Northern Winds":["Skadi","+7 rerolls","next"],"Misdirection":["Skadi","+25% reflect","own"],"Permafrost":["Skadi","+3 seals","own"],
+ "Ancient Mariner":["Njord","+10% crit chance","part"],"Prosperity":["Njord","+80% resources","buy"],
+ "Callous Cruelty":["Nidhogg","+35% crit damage","next"],"Power Overwhelming":["Nidhogg","+22% god skill damage","next"],"Rulebreaker":["Nidhogg","+40% bonus class/god choice","next"],
+ "Fehu Runestone":["Brokk & Sindri","+30% resources","own"],"Nauthiz Runestone":["Brokk & Sindri","+8% double skill or reward","own"],
+ "Badger's Endurance":["Nerthus","+100 max health","buy"],"Lizard's Regeneration":["Nerthus","+24% healing power","buy"],"Bear's Strength":["Nerthus","+9% attack damage","buy"],
+ "Dodging":["Loki","+20% evasion","buy"],"Quickness":["Loki","+15% movement speed","own"]
+};
+const VLABEL={own:"owned",part:"partial",buy:"not bought",next:"buy next"};
+
+/* ---------- builds ---------- */
+const BUILDS=[
+ {id:"storm",name:"Stormbreaker",character:"Warden",kicker:"Thor core · stun & lightning",status:"tested",maxDifficulty:"Insane",
+  thesis:"Hammers stun, Pulverize adds 25% to anything stunned, and Thor's lightning cashes in. <em>Evolve speed</em> decides the run.",
+  weapon:["Dwarven Hammer","stun feeds Pulverize and Resonance"],subclass:["Shieldbearer",""],
+  classActives:[["Magnetized Anvil","18–24% of damage"],["Iron Fist","22–30% of damage"]],
+  godActives:[["Mjolnir","Thor","evolve by minute 15"],["Ball Lightning","Thor","top damage both runs"],["Valkyrie Descent","Freya","13% share · swap for Arctic Arrow (Skadi) or Runic Boulder (Odin)"]],
+  passives:["Guidance","Mannaz","Ansuz","Overwhelming Potential","Might of Megingjord","King of Gods","Pulverize","Frost Armor","Torrents","Law & Order","Resonance","Concentration"],
+  godTier:{"Thor":"S","Brokk & Sindri":"S","Freya":"A","Skadi":"A","Odin":"A","Njord":"B","Loki":"B","Nidhogg":"C","Nerthus":"C"},
+  godWhy:{"Thor":"two actives + two multipliers","Brokk & Sindri":"Mannaz, Ansuz cost no slot","Freya":"Guidance + Valkyrie","Skadi":"Frost Armor + a freeze","Odin":"King of Gods + Boulder","Njord":"Torrents only","Loki":"Parasite only","Nidhogg":"No Remorse only","Nerthus":"Swiftness only"},
+  picks:{"Thor":["Mjolnir","Ball Lightning","Overwhelming Potential","Might of Megingjord"],"Brokk & Sindri":["Mannaz","Ansuz","Inguz"],"Freya":["Guidance","Valkyrie Descent","Radiant Echo"],"Skadi":["Frost Armor","Arctic Arrow","Hypothermia"],"Odin":["King of Gods","Concentration","Runic Boulder"],"Njord":["Torrents","Crashing Wave"],"Loki":["Parasite","Gambler's Luck"],"Nidhogg":["No Remorse"],"Nerthus":["Swiftness","Cure Wounds"]},
+  play:["<b>Thor first.</b> Then take whichever of Brokk, Freya, Skadi or Odin the game offers; the god boards rank each.","<b>Evolve fast:</b> the Insane run had the core four evolved by 15.8 min; the Hard run took until 29.3.","<b>Boss window:</b> 71% of Insane damage taken came in the last 4 minutes. Enter it with every active at rank 3 or evolved; seal a rank, not a passive."],
+  virtues:["Militia Training","Power","Defence","Power Overwhelming","Callous Cruelty","Calmness","Ancient Mariner","Prosperity"],
+  steps:[["Fill both class slots: Magnetized Anvil, then Iron Fist","before L10 so both reach rank 3 by L12"],["Fill the three god slots: Mjolnir and Ball Lightning the moment Thor appears","third slot from whichever god you drew: Valkyrie · Arctic Arrow · Runic Boulder"],["Passives only: Guidance, Mannaz, Ansuz, then the Thor pair","on Hard and above, Frost Armor moves up to fourth"],["Evolve from chests: Mjolnir, Anvil, Ball Lightning, Iron Fist","then a damage passive"]],
+  notes:""},
+ {id:"bastion",name:"Frost Bastion",character:"Warden",kicker:"Odin · Skadi · Nidhogg · Endless",status:"community",maxDifficulty:null,
+  thesis:"Built for Endless: stack damage reduction toward <em>90%</em> and trade healing for mitigation.",
+  weapon:["Craftsman's Hammer",""],subclass:["Shieldbearer","a shield every 70 s"],
+  classActives:[["Iron Fist",""],["Seismic Shock",""]],
+  godActives:[["Ragnarok","Odin",""],["Frost Ring","Skadi","35% freeze in a 7 m ring"],["Ray of Sickness","Nidhogg",""]],
+  passives:["All In","Bottomless Stomach","Barricade","Concentration","Ice Block","Frost Armor","Wings of Fury","Sleipnir's Speed","Mithril Hammer","Resonance"],
+  godTier:{"Odin":"S","Skadi":"S","Nidhogg":"S","Thor":"A","Brokk & Sindri":"A","Freya":"B","Njord":"B","Loki":"C","Nerthus":"C"},
+  godWhy:{"Odin":"Ragnarok + Concentration","Skadi":"Ice Ring, Ice Block, Frost Armor","Nidhogg":"All In is the build","Thor":"Mjolnir if no Odin","Brokk & Sindri":"Berkana, Uruz","Freya":"Guidance","Njord":"Torrents","Loki":"","Nerthus":"Barkskin"},
+  picks:{"Odin":["Ragnarok","Concentration","Sleipnir's Speed","King of Gods"],"Skadi":["Frost Ring","Ice Block","Frost Armor"],"Nidhogg":["All In","Wings of Fury","No Remorse"],"Thor":["Mjolnir","Might of Megingjord"],"Brokk & Sindri":["Berkana","Mannaz"],"Freya":["Guidance"],"Njord":["Torrents"],"Loki":["Gambler's Luck"],"Nerthus":["Barkskin","Swiftness"]},
+  play:["<b>Chest order:</b> damage reduction (3% per chest) until 90%, then max health, attack speed, move speed.","<b>Torments:</b> accept more elites, less healing, blind choice. Refuse enemy damage, max health loss, mimics, invulnerable enemies. Never Fizzled Magic or Incompetence."],
+  virtues:["Defence","Sturdiness","Recovery","Badger's Endurance","Misdirection","Callous Cruelty","Calmness"],
+  steps:[["Fill class slots: Iron Fist, then Seismic Shock","the guide's pair; Anvil is the Stormbreaker answer"],["God slots: Ragnarok, Frost Ring, Ray of Sickness","in that order as their gods appear"],["All In first, then Bottomless Stomach, Barricade, Concentration","damage reduction before damage"],["Evolve from chests, then chase the 90% reduction cap",""]],
+  notes:""}
+];
+
+/* ---------- state ---------- */
+let custom=[];let store=null;let current=BUILDS[0];
+function allBuilds(){return [...BUILDS,...custom]}
+
+/* ---------- render ---------- */
+function renderSwitch(){
+  $("#buildRow").innerHTML=allBuilds().map(b=>`<button class="bt" type="button" data-b="${b.id}" aria-pressed="${b.id===current.id}">${ico(b.godActives[0]?b.godActives[0][0]:"Warden")}<span class="n">${esc(b.name)}</span><span class="k"><b class="who">${esc(b.character||"Warden")}</b> · ${esc(b.kicker)}${b.mine?` <span class="status st-mine">yours · ${esc(b.status||"draft")}</span>`:""}</span></button>`).join("")
+   +`<button class="bt new" type="button" data-b="__forge">${ico("Warden")}<span class="n">Forge a build</span><span class="k">copy the current one and edit</span></button>`;
+}
+function renderRail(){
+  const b=current;
+  const sec=(href,lab,icon)=>`<a href="${href}" title="${lab}" aria-label="${lab}" data-lab="${lab}">${ico(icon)}</a>`;
+  $("#rail").innerHTML=sec("#loadout","Loadout","Warden")+`<span class="sep"></span><span class="lab">gods</span>`
+   +GODS.map(g=>`<a href="#g-${g.replace(/\W/g,"")}" title="${esc(g)}" aria-label="${esc(g)}, tier ${b.godTier[g]||"B"}" data-tier="${b.godTier[g]||"B"}">${ico(g)}</a>`).join("")
+   +`<span class="sep"></span>`+sec("#order","Order","Pulverize")+sec("#points","Virtues","Power")+sec("#runs","Runs","Mjolnir");
+}
+function renderLoadout(){
+  const b=current;
+  $("#buildName").textContent=b.name;
+  const ch=b.character||"Warden";$("#charPill").innerHTML=ico(ch)+esc(ch);
+  const dp=$("#diffPill");
+  if(b.maxDifficulty){dp.textContent="Tested: "+b.maxDifficulty;dp.classList.remove("untested")}
+  else{dp.textContent="Untested";dp.classList.add("untested")}
+  $("#thesis").innerHTML=b.thesis||"";
+  const slots=[];
+  const alt=t=>t?`<span class="alt">${esc(t)}</span>`:"";
+  b.classActives.forEach((c,i)=>slots.push(`<div class="slot class"><span class="lab">class ${i+1}</span>${ico(c[0])}<span class="nm">${esc(c[0])}</span>${alt(c[1])}</div>`));
+  b.godActives.forEach((g,i)=>slots.push(`<div class="slot god"><span class="lab">god ${i+1}</span>${ico(g[0])}<span class="nm">${esc(g[0])}</span><span class="god-of">${esc(g[1]||god(g[0]))}</span>${alt(g[2])}</div>`));
+  slots.push(`<div class="slot gear"><span class="lab">weapon</span>${ico(b.weapon[0])}<span class="nm">${esc(b.weapon[0])}</span>${alt(b.weapon[1])}</div>`);
+  slots.push(`<div class="slot gear"><span class="lab">subclass</span>${ico(b.subclass[0])}<span class="nm">${esc(b.subclass[0])}</span>${alt(b.subclass[1])}</div>`);
+  $("#slots").innerHTML=slots.join("");$("#slots").style.setProperty("--n",String(slots.length));
+  $("#passives").style.setProperty("--rows",String(Math.ceil(b.passives.length/2)));
+  $("#passives").innerHTML=b.passives.map((p,i)=>`<span class="pchip"><b>${i+1}</b>${ico(p)}<span>${esc(p)}<span class="g">${esc(god(p))}</span></span></span>`).join("");
+  $("#innate").innerHTML=[["Ground Smash","dash becomes a shield smash"],["Tower Shield","blocks incoming hits"],["Iron Within","health, immune to slow"]].map(x=>`<span class="pchip" tabindex="0" data-tip="${esc(x[1])}" aria-label="${esc(x[0])}: ${esc(x[1])}">${ico(x[0])}<span>${esc(x[0])}</span></span>`).join("");
+  $("#play").innerHTML=(b.play||[]).map(p=>`<p>${p}</p>`).join("")+(b.notes?`<p class="caveat">${esc(b.notes)}</p>`:"");
+}
+function renderGods(){
+  const b=current;
+  const order=[...GODS].sort((x,y)=>"SABC".indexOf(b.godTier[x]||"B")-"SABC".indexOf(b.godTier[y]||"B"));
+  $("#godStrip").innerHTML=order.map(g=>`<a class="gcard" href="#g-${g.replace(/\W/g,"")}" data-tier="${b.godTier[g]||"B"}"><span class="t">${b.godTier[g]||"B"}</span>${ico(g)}<span class="n">${esc(g)}</span><span class="why">${esc((b.godWhy||{})[g]||"")}</span></a>`).join("");
+  const cls=b.character||"Warden";
+  const boards=[cls,...order].map(g=>{
+    const rows=CARDS[g]||{S:[],A:[],B:[],F:[]};const picks=(b.picks||{})[g]||(g===cls?[...b.classActives.map(c=>c[0]),...b.passives.filter(p=>god(p)===cls)]:[]);
+    const chip=c=>`<span class="chip"${c[1]?` tabindex="0" data-tip="${esc(c[1])}" aria-label="${esc(c[0])}: ${esc(c[1])}"`:""}>${ico(c[0])}<span>${esc(c[0])}${c[2]?`<span class="tag">active</span>`:""}</span></span>`;
+    const pickRow=picks.length?`<div class="row pick"><div class="side"><span>PICK</span></div><div class="cards">${picks.map(p=>{const c=findCard(g,p)||[p,""];return chip([c[0],c[1],kindOf(p)!=="passive"])}).join("")}</div></div>`:"";
+    const tierRow=(t,label,fold)=>{const cs=(rows[t]||[]).filter(c=>!picks.includes(c[0]));if(!cs.length)return"";return`<div class="row ${t}${fold?" fold":""}"><div class="side">${t}<span>${label}</span></div><div class="cards">${cs.map(chip).join("")}</div></div>`};
+    const tier=g===cls?"cls":(b.godTier[g]||"B");
+    return`<div class="board" id="g-${g.replace(/\W/g,"")}"><header>${ico(g)}<h3>${esc(g)}</h3><em class="${tier}">${g===cls?"CLASS":tier}</em></header>${pickRow}${tierRow("S","TOP")}${tierRow("A","STRONG")}${tierRow("B","FILLER",true)}${tierRow("F","REROLL",true)}<button class="more" type="button">show filler and reroll cards</button></div>`;
+  });
+  $("#boards").innerHTML=boards.join("");
+}
+function findCard(g,name){for(const t of ["S","A","B","F"]){const c=(CARDS[g]&&CARDS[g][t]||[]).find(x=>x[0]===name);if(c)return c}return null}
+function renderOrder(){
+  const b=current;
+  $("#steps").innerHTML=(b.steps||[]).map(s=>`<li><div>${esc(s[0])}<span>${esc(s[1]||"")}</span></div></li>`).join("");
+  const marks=[[1,"actives · most passives",6],[6,"active rank 2",21],[8,"passive rank 2 · Pulverize unlocks",34],[10,"subclass card",47],[12,"active rank 3",60],[15,"passive rank 3 · Resonance unlocks",74],[18,"EVOLVE from chests",90,1]];
+  $("#track").innerHTML=`<div class="line"></div>`+marks.map(m=>`<div class="mark${m[3]?" big":""}" style="left:${m[2]}%"><div class="lv">L${m[0]}</div><div class="dot"></div><div class="what">${m[1]}</div></div>`).join("");
+}
+function renderVirtues(){
+  const b=current;
+  $("#virtues").innerHTML=(b.virtues||[]).map(v=>{const d=VIRTUES[v];if(!d)return"";return`<div class="vrow v-${d[2]}">${ico(v)}<div class="vn">${esc(v)}<i>${esc(d[1])}</i><span class="t">${esc(d[0])} temple</span></div><span class="vs">${VLABEL[d[2]]}</span></div>`}).join("")||`<div class="empty">No virtues listed.</div>`;
+}
+function renderTheory(){
+  const rows=[["Arctic Arrow",48,0.3,"Hard","dead"],["Valkyrie Descent",14,13,"Insane","cold"],["Ball Lightning",11,26,"Insane",""],["Magnetized Anvil",21,18,"Insane",""],["Iron Fist",18,22,"Insane",""],["Mjolnir",6,21,"Insane",""],["Runic Boulder",10,8,"Normal","cold"],["Frost Ring",2,11,"Normal","cold"]];
+  $("#theory tbody").innerHTML=rows.map(r=>`<tr${r[4]==="dead"?" class=\"hot\"":""}><td class="k">${ico(r[0])}${esc(r[0])}</td><td class="n">${r[1]}</td><td class="n">${r[2]}% · ${r[3]}</td><td><div class="meter ${r[4]}"><i style="width:${Math.max(2,r[2]*3.5)}%"></i></div></td></tr>`).join("");
+}
+function renderAll(){renderSwitch();renderRail();renderLoadout();renderGods();renderOrder();renderVirtues();$("#eDelete").hidden=!current.mine;fillEditor(current)}
+
+/* ---------- editor ---------- */
+function opts(kind,sel){const names=SKILLS.filter(s=>s.kind===kind).map(s=>ALIASR[s.name]||s.name).sort();return`<option value="">—</option>`+names.map(n=>`<option${n===sel?" selected":""}>${esc(n)}</option>`).join("")}
+const ALIASR=Object.fromEntries(Object.entries(ALIAS).map(([a,b])=>[b,a]));
+let ePass=[];
+function fillEditor(b){
+  $("#eName").value=b.mine?b.name:b.name+" · variant";$("#eStatus").value=b.mine?(b.status||"draft"):"draft";
+  $("#eWeapon").value=b.weapon[0];$("#eSub").value=b.subclass[0];$("#eThesis").value=b.mine?(b.thesisPlain||""):"";$("#eNotes").value=b.notes||"";
+  $("#eC1").innerHTML=opts("class_active",b.classActives[0]&&b.classActives[0][0]);$("#eC2").innerHTML=opts("class_active",b.classActives[1]&&b.classActives[1][0]);
+  ["#eG1","#eG2","#eG3"].forEach((s,i)=>{$(s).innerHTML=opts("god_active",b.godActives[i]&&b.godActives[i][0])});
+  $("#ePassAdd").innerHTML=opts("passive","");
+  ePass=[...b.passives];renderPassList();
+  $("#eTiers").innerHTML=GODS.map(g=>`<label>${ico(g,"",24).replace('class="ic "','class="ic" style="width:24px;height:24px"')}<span style="flex:1;font-family:var(--f-ui);font-size:13px;text-transform:none;letter-spacing:0;color:var(--bone)">${esc(g)}</span><select data-g="${esc(g)}">${["S","A","B","C"].map(t=>`<option${(b.godTier[g]||"B")===t?" selected":""}>${t}</option>`).join("")}</select></label>`).join("");
+}
+function renderPassList(){$("#ePassList").innerHTML=ePass.map((p,i)=>`<button type="button" data-i="${i}">${i+1} · ${esc(p)} ✕</button>`).join("")||`<span class="empty">no passives yet</span>`}
+function readEditor(){
+  const gt={};document.querySelectorAll("#eTiers select").forEach(s=>gt[s.dataset.g]=s.value);
+  const ga=["#eG1","#eG2","#eG3"].map(s=>$(s).value).filter(Boolean).map(n=>[n,god(n),""]);
+  const ca=["#eC1","#eC2"].map(s=>$(s).value).filter(Boolean).map(n=>[n,""]);
+  const thesis=$("#eThesis").value.trim();
+  return{name:$("#eName").value.trim()||"Untitled build",character:current.character||"Warden",kicker:GODS.filter(g=>gt[g]==="S").join(" · ")||"custom",status:$("#eStatus").value,
+    thesisPlain:thesis,thesis:esc(thesis),weapon:[$("#eWeapon").value.trim()||"Dwarven Hammer",""],subclass:[$("#eSub").value,""],
+    classActives:ca,godActives:ga,passives:[...ePass],godTier:gt,godWhy:{},picks:derivePicks(gt,ga,ePass),play:[],virtues:current.virtues||[],
+    steps:[["Fill both class slots: "+ca.map(c=>c[0]).join(", then "),"before L10"],["Fill the god slots: "+ga.map(g=>g[0]).join(", "),"as their gods appear"],["Passives in the listed order",""],["Evolve from chests",""]],
+    notes:$("#eNotes").value.trim(),updatedAt:new Date().toISOString()};
+}
+function derivePicks(gt,ga,pass){const p={};GODS.forEach(g=>{p[g]=[...ga.filter(x=>x[1]===g).map(x=>x[0]),...pass.filter(x=>god(x)===g)];if(!p[g].length){const r=CARDS[g]||{};p[g]=[...(r.S||[]),...(r.A||[])].slice(0,2).map(c=>c[0])}});return p}
+async function saveBuild(){
+  const d=readEditor();const btn=$("#eSave");btn.disabled=true;
+  try{
+    if(store&&store.kind==="db"){
+      if(current.mine)await store.db.doc("builds/"+current.id).set(d);
+      else{const ref=await store.db.collection("builds").add(d);d.id=ref.id}
+    }else{
+      const id=current.mine?current.id:"l"+Date.now();custom=custom.filter(x=>x.id!==id);custom.unshift({...d,id,mine:true});localWrite();
+    }
+    const id=current.mine?current.id:d.id;
+    if(id){current={...d,id,mine:true};renderAll();$("#loadout").scrollIntoView({behavior:"smooth"})}
+    btn.textContent="Saved";setTimeout(()=>btn.textContent="Save build",1200);
+  }catch(e){$("#storeNote").textContent="Save failed ("+(e&&e.code||"error")+")."}
+  btn.disabled=false;
+}
+async function deleteBuild(){
+  if(!current.mine)return;const id=current.id;
+  if(store&&store.kind==="db"){try{await store.db.doc("builds/"+id).delete()}catch(e){}}
+  else{custom=custom.filter(x=>x.id!==id);localWrite()}
+  current=BUILDS[0];renderAll();
+}
+function localRead(){try{return JSON.parse(localStorage.getItem("wf-builds")||"[]")}catch(e){return[]}}
+function localWrite(){try{localStorage.setItem("wf-builds",JSON.stringify(custom))}catch(e){}}
+
+/* ---------- wiring ---------- */
+document.addEventListener("click",e=>{
+  const bt=e.target.closest("[data-b]");
+  if(bt){const id=bt.dataset.b;if(id==="__forge"){$("#forge").scrollIntoView({behavior:"smooth"});return}
+    const b=allBuilds().find(x=>x.id===id);if(b){current=b;renderAll();window.scrollTo({top:$("#loadout").offsetTop-80,behavior:"smooth"})}return}
+  const more=e.target.closest(".board .more");if(more){const bd=more.closest(".board");bd.classList.toggle("open");more.textContent=bd.classList.contains("open")?"hide filler and reroll cards":"show filler and reroll cards";return}
+  const pl=e.target.closest("#ePassList button");if(pl){ePass.splice(+pl.dataset.i,1);renderPassList();return}
+});
+/* one floating tooltip for every [data-tip]: fixed position, so board clip-paths never cut it off */
+const tip=document.createElement("div");tip.id="tip";tip.setAttribute("role","tooltip");document.body.appendChild(tip);
+function showTip(el){
+  tip.textContent=el.dataset.tip;tip.classList.add("on");
+  const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;
+  const x=Math.min(Math.max(8,r.left),innerWidth-w-8);const y=r.top-h-8<8?r.bottom+8:r.top-h-8;
+  tip.style.left=x+"px";tip.style.top=y+"px";
+}
+function hideTip(){tip.classList.remove("on")}
+["mouseover","focusin"].forEach(ev=>document.addEventListener(ev,e=>{const el=e.target.closest("[data-tip]");el?showTip(el):hideTip()}));
+document.addEventListener("focusout",hideTip);
+addEventListener("scroll",hideTip,{passive:true});
+/* the switcher only needs its backdrop once it is pinned over content */
+const sw=$("#switch");const pin=()=>sw.classList.toggle("stuck",sw.getBoundingClientRect().top<=0&&scrollY>0);
+addEventListener("scroll",pin,{passive:true});pin();
+$("#ePassAdd").addEventListener("change",e=>{const v=e.target.value;if(v&&!ePass.includes(v)){ePass.push(v);renderPassList()}e.target.value=""});
+$("#eSave").addEventListener("click",saveBuild);
+$("#eFork").addEventListener("click",()=>fillEditor(current));
+$("#eDelete").addEventListener("click",deleteBuild);
+
+/* ---------- boot ---------- */
+$("#heroIcon").src=ICONS["Warden"]||"";
+renderTheory();renderAll();
+
+(async()=>{
+  let db=null;try{db=window.claude&&window.claude.use?await window.claude.use("db"):null}catch(e){db=null}
+  if(db){store={kind:"db",db};
+    db.collection("builds").orderBy("updatedAt","desc").limit(100).onSnapshot(snap=>{
+      custom=snap.docs.filter(d=>d.exists).map(d=>({...d.data(),id:d.id,mine:true}));
+      if(current.mine){const c=custom.find(x=>x.id===current.id);if(c)current=c}
+      renderSwitch();
+    },err=>{$("#storeNote").textContent="Live build list unavailable ("+err.code+"); saves still work."});
+  }else{store={kind:"local"};custom=localRead().map(x=>({...x,mine:true}));renderSwitch();$("#storeNote").textContent="Builds save in this browser only (database not available here).";}
+})();
+})();
+</script>
+
+</body>
+</html>
