@@ -37,7 +37,7 @@ Build grades come from the player's own analytics logs and the installed game's 
 - **Characters:** Warden is the only character covered today. Builds must name their character; site-wide chrome must not.
 - **Filters:** character is the planned filter once a second character exists. Map is stored per build but gets no filter until two builds differ by map (open decision, 2026-09-12).
 - **Saving:** builds save to the artifact database when the page runs as a Claude artifact, and to browser storage otherwise.
-- **Data refresh:** a browser page cannot read the game's logs. Run data and skill tables are extracted outside the page and embedded (`forge/skills.js`, `forge/icons.js`, the runs tables in `forge/index.html`).
+- **Data refresh:** a browser page cannot read the game's logs. Run data and skill tables are extracted outside the page and embedded (`forge/skills.js`, `forge/icons.js`, `forge/descriptions.js` via `node scripts/extract-descriptions.mjs`, `forge/scores.js` (route stat bars) via `node scripts/score-builds.mjs` after any route or virtue change, the runs tables in `forge/index.html`).
 - **Retired:** the terminal pick coach (`archive/coach.py`) was retired on 2026-09-12; Forge is the only tool.
 
 ## Brand Commitments

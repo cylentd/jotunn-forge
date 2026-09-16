@@ -1,3 +1,7 @@
 # Extracted from the installed game (build 1.2.3.94815); regenerate, never hand-edit.
 forge/icons.js linguist-generated=true -diff
 forge/skills.js linguist-generated=true -diff
+# Regenerate with: node scripts/extract-descriptions.mjs
+forge/descriptions.js linguist-generated=true -diff
+# Regenerate with: node scripts/score-builds.mjs (after any route or virtue change)
+forge/scores.js linguist-generated=true -diff
