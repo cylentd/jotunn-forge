@@ -108,6 +108,14 @@ h4{font-family:var(--f-num);font-size:10.5px;font-weight:500;letter-spacing:.2em
 #passives.pchips{grid-auto-flow:column;grid-template-rows:repeat(var(--rows,5),auto);grid-template-columns:repeat(2,1fr)}
 @media (max-width:620px){#passives.pchips{grid-auto-flow:row;grid-template-rows:none;grid-template-columns:1fr}}
 #innate.pchips{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.routes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.routes:empty{display:none}
+.route{font:inherit;display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;background:var(--iron-2);border:1px solid var(--etch);color:var(--bone);cursor:pointer;text-align:left;transition:border-color .25s var(--ease)}
+.route:hover,.route[aria-pressed="true"]{border-color:var(--ember)}
+.route img,.route .tile{width:28px;height:28px;font-size:12px}
+.route .n{display:block;font-size:13.5px;font-weight:700;line-height:1.2}
+.route .k{display:block;font-family:var(--f-num);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--bone-dim)}
+.route[aria-pressed="true"] .k{color:var(--ember)}
 .pchip{display:flex;min-width:0;align-items:center;gap:10px;padding:5px 12px 5px 5px;background:var(--iron-2);border:1px solid var(--etch);font-size:16px;font-weight:600;transition:transform .25s var(--ease),border-color .25s var(--ease)}
 .pchip:hover{transform:translateY(-2px);border-color:var(--ember)}
 .pchip b{font-family:var(--f-num);font-size:12.5px;color:var(--ember);width:20px;text-align:center;flex:none}
@@ -275,7 +283,7 @@ footer{margin-top:56px;border-top:2px solid var(--etch);padding-top:16px;font-fa
     <p class="thesis" id="thesis"></p>
     <div class="slots" id="slots"></div>
     <div class="two" style="margin-top:14px">
-      <div><h4>Passives · pick order</h4><div class="pchips" id="passives"></div></div>
+      <div><h4 id="passHead">Passives · pick order</h4><div class="routes" id="routes"></div><div class="pchips" id="passives"></div><p class="caveat" id="routeNote" style="margin:8px 0 0" hidden></p></div>
       <div><h4>Innate</h4><div class="pchips" id="innate"></div><div class="play" id="play"></div></div>
     </div>
   </div>
@@ -439,10 +447,10 @@ const CARDS={
  "Warden":{S:[["Magnetized Anvil","24 + 18 dmg on a 2 s cooldown",1],["Iron Fist","22 dmg ×4, 15% stun; feeds Pulverize",1],["Pulverize","+25% damage to anything stunned · L8"]],A:[["Law & Order","+24% god skill damage"],["Resonance","15% cooldown reset per stun · L15"],["Blunt Force","7% stun on every attack"]],B:[["Shieldwall","",1],["Rock Solid"],["Mithril Hammer"],["Barricade"],["Deafening Impact"],["Punish"],["Bottomless Stomach"],["Earthquake"]],F:[["Hammertime","",1],["Seismic Shock","",1],["Retribution"],["Blood & Thunder"],["Tremors"],["Rebound"],["Last Vigilance"]]},
  "Thor":{S:[["Mjolnir","30 dmg, pierces 12 m out and back · 21% of Insane damage",1],["Ball Lightning","20 dmg on a 1.75 s cooldown · top damage in both runs",1],["Overwhelming Potential","+40% to every Thor lightning skill"],["Might of Megingjord","+36% god skill damage"]],A:[["Thunderstorm","10 strikes × 20 dmg",1],["Devastating Hit","+10% crit chance, +30% crit damage · L8"]],B:[["Goat Feast"],["Lightning Nova"],["Sentinel","",1]],F:[["Lightning Strike","",1],["Explosive Nature"],["Static Charge"],["Blows of Jarngreipr"],["Discharge"]]},
  "Brokk & Sindri":{S:[["Mannaz","+45% class skill damage"],["Ansuz","+45% god skill damage"]],A:[["Inguz","+36% crit damage, class and god"],["Teiwaz","+45% attack damage"],["Berkana","+220 max health"]],B:[["Perth"],["Raido"],["Hagalaz"],["Thurisaz"],["Uruz"],["Laguz"],["Eiwaz"]],F:[["Kaunaz"],["Gebo"],["Jera"]]},
- "Odin":{S:[["King of Gods","+30% damage and +15% crit"]],A:[["Concentration","−20% cooldowns while standing still · L8"],["Worthy Opponent","+5% damage, +20% against elites"],["Sleipnir's Speed","+30% attack speed"],["Runic Boulder","30 dmg, rolls through a line · 8% share on Normal",1]],B:[["Rune Mastery","+5% double cast, heals 7"],["Older than Time"],["Overlord"],["Self-sacrifice"],["Ragnarok","",1]],F:[["Gungnir","",1],["Huginn & Munnin","",1],["Einherjar","",1],["Blood Ritual"]]},
+ "Odin":{S:[["King of Gods","+30% god skill damage and +15% god skill crit"]],A:[["Concentration","−20% cooldowns while standing still · L8"],["Worthy Opponent","+5% damage, +20% against elites"],["Sleipnir's Speed","+30% attack speed"],["Runic Boulder","30 dmg, rolls through a line · 8% share on Normal",1]],B:[["Rune Mastery","+5% double cast, heals 7"],["Older than Time"],["Overlord"],["Self-sacrifice"],["Local Ragnarok","",1]],F:[["Gungnir","",1],["Huginn & Munnin","",1],["Einherjar","",1],["Blood Ritual"]]},
  "Freya":{S:[["Guidance","+60% class skill damage"]],A:[["Valkyrie Descent","35 dmg + 100% slow",1],["Radiant Echo","21% chance to cast twice"],["Last Stand","+15% crit while standing still"]],B:[["Heroic Hymn"],["Auric Charm"]],F:[["Gambanteinn","",1],["Divine Wave","",1],["Golden Discs","",1],["Seidr Blessing","",1],["Clairvoyance"],["Brisingamen"],["Gold is Life"],["Godlike Appeal"]]},
  "Skadi":{S:[["Frost Armor","−24% damage taken; scales with every hit"]],A:[["Arctic Arrow","2 arrows, 100% freeze 3 s · CC, 0.3% of damage on Hard",1],["Hypothermia","+20% class damage and −20% CD under 40% HP"],["Crystal Comet","35 dmg, 4 m, 75% slow",1]],B:[["Snow Flake","",1],["Frostbite"],["Cool Runnings"],["Ice Block","invulnerable on level up"]],F:[["Frost Ring","10 dmg on 4.5 s · out-damaged Mjolnir on Normal, still CC",1],["Ice Surface","",1],["Snow Fight"],["Wintergrasp"],["Cold Feet"],["Fimbulwinter"]]},
- "Njord":{S:[["Torrents","−20% class and god cooldowns"]],A:[["Salted Wounds","+25% damage to enemies under half health"],["Crashing Wave","100% stun whenever the weapon skill fires"]],B:[["Lost Drakkar","",1],["Fish Dinner","heal per level up"],["Downpour of Fish"],["Leviathan","",1]],F:[["Kraken","",1],["Vortex","",1],["Water Bubble","",1],["Sea Legs"],["Ebb & Swell"],["Bottomless Wealth"],["Mighty Oars"]]},
+ "Njord":{S:[["Torrents","−20% class and god cooldowns"]],A:[["Salted Wounds","+25% damage to enemies under half health"]],B:[["Crashing Wave","stun only when you use the Q"],["Lost Drakkar","",1],["Fish Dinner","heal per level up"],["Downpour of Fish"],["Leviathan","",1]],F:[["Kraken","",1],["Vortex","",1],["Water Bubble","",1],["Sea Legs"],["Ebb & Swell"],["Bottomless Wealth"],["Mighty Oars"]]},
  "Loki":{S:[],A:[["Parasite","12 × 10 dmg on a 2.25 s cooldown",1],["Gambler's Luck","+30% crit damage"],["Tricks of the Trade","+12% double cast"]],B:[["Spark","",1],["Jotunn's Blood"],["Elusive Trickster"],["Jörmungandr","",1]],F:[["Vipers","",1],["Flammable Wall","",1],["Nasty Tricks"],["Stacked & Loaded"],["Special Delivery"],["Shapeshifter"],["Ripped Lottery"]]},
  "Nidhogg":{S:[],A:[["No Remorse","+24% all damage"],["Raise Dead","28 dmg/s zone, 100% slow",1]],B:[["Ray of Sickness","",1],["Vigor"],["Corpse-eater"],["Fatal Trauma"],["Calamitous Breath","",1]],F:[["Crushing Fear","",1],["Wing Attack","",1],["Bone Claw"],["Sheer Terror"],["Opulence"],["Wings of Fury"],["All In","blocks healing"]]},
  "Nerthus":{S:[],A:[["Swiftness","+14% attack and movement speed"],["Cure Wounds","+40% healing and +2 regen"]],B:[["Hailstorm","",1],["Strangling Vines","",1],["Magic Fangs"],["Barkskin","caps a hit at half your health"],["Spike Growth"]],F:[["Dire Beast","",1],["Hornet Swarm","",1],["Grove Guardian","",1],["Gift of Nature"],["Earth Core"],["Fertility"],["Roots of Yggdrasil"]]}
@@ -467,34 +475,57 @@ const VLABEL={own:"owned",part:"partial",buy:"not bought",next:"buy next"};
 const BUILDS=[
  {id:"storm",name:"Stormbreaker",character:"Warden",kicker:"Thor core · stun & lightning",status:"tested",maxDifficulty:"Insane",
   thesis:"Hammers stun, Pulverize adds 25% to anything stunned, and Thor's lightning cashes in. <em>Evolve speed</em> decides the run.",
-  weapon:["Dwarven Hammer","stun feeds Pulverize and Resonance"],subclass:["Shieldbearer",""],
+  weapon:["Dwarven Hammer","+50 health, no stun (game data)"],subclass:["Shieldbearer",""],
   classActives:[["Magnetized Anvil","18–24% of damage"],["Iron Fist","22–30% of damage"]],
-  godActives:[["Mjolnir","Thor","evolve by minute 15"],["Ball Lightning","Thor","top damage both runs"],["Valkyrie Descent","Freya","13% share · swap for Arctic Arrow (Skadi) or Runic Boulder (Odin)"]],
-  passives:["Guidance","Mannaz","Ansuz","Overwhelming Potential","Might of Megingjord","King of Gods","Pulverize","Frost Armor","Torrents","Law & Order","Resonance","Concentration"],
-  godTier:{"Thor":"S","Brokk & Sindri":"S","Freya":"A","Skadi":"A","Odin":"A","Njord":"B","Loki":"B","Nidhogg":"C","Nerthus":"C"},
-  godWhy:{"Thor":"two actives + two multipliers","Brokk & Sindri":"Mannaz, Ansuz cost no slot","Freya":"Guidance + Valkyrie","Skadi":"Frost Armor + a freeze","Odin":"King of Gods + Boulder","Njord":"Torrents only","Loki":"Parasite only","Nidhogg":"No Remorse only","Nerthus":"Swiftness only"},
-  picks:{"Thor":["Mjolnir","Ball Lightning","Overwhelming Potential","Might of Megingjord"],"Brokk & Sindri":["Mannaz","Ansuz","Inguz"],"Freya":["Guidance","Valkyrie Descent","Radiant Echo"],"Skadi":["Frost Armor","Arctic Arrow","Hypothermia"],"Odin":["King of Gods","Concentration","Runic Boulder"],"Njord":["Torrents","Crashing Wave"],"Loki":["Parasite","Gambler's Luck"],"Nidhogg":["No Remorse"],"Nerthus":["Swiftness","Cure Wounds"]},
-  play:["<b>Thor first.</b> Then take whichever of Brokk, Freya, Skadi or Odin the game offers; the god boards rank each.","<b>Evolve fast:</b> the Insane run had the core four evolved by 15.8 min; the Hard run took until 29.3.","<b>Boss window:</b> 71% of Insane damage taken came in the last 4 minutes. Enter it with every active at rank 3 or evolved; seal a rank, not a passive."],
+  godActives:[["Mjolnir","Thor","evolve by minute 15"],["Ball Lightning","Thor","top damage both runs"],["Local Ragnarok","Odin","the burst Thor lacks; evolved it stuns · Valkyrie Descent on the Brokk · Freya route"]],
+  passives:["Concentration","Overwhelming Potential","Ansuz","Might of Megingjord","Pulverize"],
+  routes:[
+   {gods:["Brokk & Sindri","Odin"],label:"best · untested",passives:[["Concentration",1],["Overwhelming Potential",1],["Ansuz",1],["Might of Megingjord",1],["Pulverize",1,"L8"],["Overwhelming Potential",2,"L8"],["Ansuz",2,"L8"],["Might of Megingjord",2,"L8"],["Ansuz",3,"L15"],["Might of Megingjord",3,"L15"]],note:"Evolved Ansuz is 0.75 god damage + 13% double cast; how a passive evolves is unverified. Concentration needs you standing still about a third of the time."},
+   {gods:["Brokk & Sindri","Freya"],label:"if you keep moving · untested",passives:[["Overwhelming Potential",1],["Guidance",1],["Ansuz",1],["Radiant Echo",1],["Pulverize",1,"L8"],["Guidance",2,"L8"],["Overwhelming Potential",2,"L8"],["Ansuz",2,"L8"],["Radiant Echo",2,"L8"],["Ansuz",3,"L15"]],note:"God 3 is Valkyrie Descent. Evolve Ansuz."},
+   {gods:["Odin","Freya"],label:"no Brokk offered · untested",passives:[["Concentration",1],["Overwhelming Potential",1],["Guidance",1],["Might of Megingjord",1],["Radiant Echo",1],["Pulverize",1,"L8"],["Overwhelming Potential",2,"L8"],["Guidance",2,"L8"],["Might of Megingjord",2,"L8"],["Radiant Echo",2,"L8"]],note:"No passive here evolves, so it falls behind once a Brokk route evolves Ansuz."}
+  ],
+  godTier:{"Thor":"S","Brokk & Sindri":"S","Odin":"S","Freya":"A","Skadi":"B","Njord":"B","Loki":"B","Nidhogg":"C","Nerthus":"C"},
+  godWhy:{"Thor":"two actives + two multipliers","Brokk & Sindri":"Ansuz ×3, evolves to 0.75 god damage","Freya":"Guidance ×2 + Radiant Echo","Skadi":"Frost Armor only · Nightmare survival","Odin":"Local Ragnarok + Concentration","Njord":"Torrents only","Loki":"Parasite only","Nidhogg":"No Remorse only","Nerthus":"Cure Wounds only"},
+  picks:{"Thor":["Mjolnir","Ball Lightning","Overwhelming Potential","Might of Megingjord"],"Brokk & Sindri":["Ansuz"],"Freya":["Guidance","Radiant Echo","Valkyrie Descent"],"Skadi":["Frost Armor","Arctic Arrow","Hypothermia"],"Odin":["Local Ragnarok","Concentration"],"Njord":["Torrents"],"Loki":["Parasite","Gambler's Luck"],"Nidhogg":["No Remorse"],"Nerthus":["Cure Wounds"]},
+  play:["<b>Thor first.</b> Then aim for a route: Brokk · Odin, Brokk · Freya if you keep moving, or Odin · Freya when Brokk never shows.","<b>10 passive ranks</b> is the budget in a 25-min raid: 25 level-ups minus 15 for five actives. A 20-min raid gives fewer.","<b>Evolve fast:</b> the Insane run had the core four evolved by 15.8 min; the Hard run took until 29.3.","<b>Boss window:</b> 71% of Insane damage taken came in the last 4 minutes. Enter it with every active at rank 3 or evolved; seal a rank, not a passive."],
   virtues:["Militia Training","Power","Defence","Power Overwhelming","Callous Cruelty","Calmness","Ancient Mariner","Prosperity"],
-  steps:[["Fill both class slots: Magnetized Anvil, then Iron Fist","before L10 so both reach rank 3 by L12"],["Fill the three god slots: Mjolnir and Ball Lightning the moment Thor appears","third slot from whichever god you drew: Valkyrie · Arctic Arrow · Runic Boulder"],["Passives only: Guidance, Mannaz, Ansuz, then the Thor pair","on Hard and above, Frost Armor moves up to fourth"],["Evolve from chests: Mjolnir, Anvil, Ball Lightning, Iron Fist","then a damage passive"]],
-  notes:""},
+  steps:[["Fill both class slots: Magnetized Anvil, then Iron Fist","before L10 so both reach rank 3 by L12"],["Fill the three god slots: Mjolnir and Ball Lightning the moment Thor appears","third slot: Local Ragnarok, or Valkyrie Descent on the Brokk · Freya route"],["Passives: follow the route for the gods you drew","10 ranks; the route list is in the Loadout"],["Take each active a 4th time to evolve it: Mjolnir, Anvil, Ball Lightning, Iron Fist","gated at L18 · then Ansuz on a Brokk route"]],
+  notes:"Routes are scored from game data: bonuses on the same stat add, different stats multiply (inferred from the game's stat names, not seen in code). No route has a logged run yet."},
  {id:"bastion",name:"Frost Bastion",character:"Warden",kicker:"Odin · Skadi · Nidhogg · Endless",status:"community",maxDifficulty:null,
   thesis:"Built for Endless: stack damage reduction toward <em>90%</em> and trade healing for mitigation.",
   weapon:["Craftsman's Hammer",""],subclass:["Shieldbearer","a shield every 70 s"],
   classActives:[["Iron Fist",""],["Seismic Shock",""]],
-  godActives:[["Ragnarok","Odin",""],["Frost Ring","Skadi","35% freeze in a 7 m ring"],["Ray of Sickness","Nidhogg",""]],
+  godActives:[["Local Ragnarok","Odin",""],["Frost Ring","Skadi","35% freeze in a 7 m ring"],["Ray of Sickness","Nidhogg",""]],
   passives:["All In","Bottomless Stomach","Barricade","Concentration","Ice Block","Frost Armor","Wings of Fury","Sleipnir's Speed","Mithril Hammer","Resonance"],
   godTier:{"Odin":"S","Skadi":"S","Nidhogg":"S","Thor":"A","Brokk & Sindri":"A","Freya":"B","Njord":"B","Loki":"C","Nerthus":"C"},
-  godWhy:{"Odin":"Ragnarok + Concentration","Skadi":"Ice Ring, Ice Block, Frost Armor","Nidhogg":"All In is the build","Thor":"Mjolnir if no Odin","Brokk & Sindri":"Berkana, Uruz","Freya":"Guidance","Njord":"Torrents","Loki":"","Nerthus":"Barkskin"},
-  picks:{"Odin":["Ragnarok","Concentration","Sleipnir's Speed","King of Gods"],"Skadi":["Frost Ring","Ice Block","Frost Armor"],"Nidhogg":["All In","Wings of Fury","No Remorse"],"Thor":["Mjolnir","Might of Megingjord"],"Brokk & Sindri":["Berkana","Mannaz"],"Freya":["Guidance"],"Njord":["Torrents"],"Loki":["Gambler's Luck"],"Nerthus":["Barkskin","Swiftness"]},
+  godWhy:{"Odin":"Local Ragnarok + Concentration","Skadi":"Ice Ring, Ice Block, Frost Armor","Nidhogg":"All In (S-tier in this build): +0.13% damage per kill, no healing — take it early to stack kills","Thor":"Mjolnir if no Odin","Brokk & Sindri":"Berkana, Mannaz","Freya":"Guidance","Njord":"Torrents","Loki":"","Nerthus":"Barkskin"},
+  picks:{"Odin":["Local Ragnarok","Concentration","Sleipnir's Speed","King of Gods"],"Skadi":["Frost Ring","Ice Block","Frost Armor"],"Nidhogg":["All In","Wings of Fury","No Remorse"],"Thor":["Mjolnir","Might of Megingjord"],"Brokk & Sindri":["Berkana","Mannaz"],"Freya":["Guidance"],"Njord":["Torrents"],"Loki":["Gambler's Luck"],"Nerthus":["Barkskin","Swiftness"]},
   play:["<b>Chest order:</b> damage reduction (3% per chest) until 90%, then max health, attack speed, move speed.","<b>Torments:</b> accept more elites, less healing, blind choice. Refuse enemy damage, max health loss, mimics, invulnerable enemies. Never Fizzled Magic or Incompetence."],
   virtues:["Defence","Sturdiness","Recovery","Badger's Endurance","Misdirection","Callous Cruelty","Calmness"],
-  steps:[["Fill class slots: Iron Fist, then Seismic Shock","the guide's pair; Anvil is the Stormbreaker answer"],["God slots: Ragnarok, Frost Ring, Ray of Sickness","in that order as their gods appear"],["All In first, then Bottomless Stomach, Barricade, Concentration","damage reduction before damage"],["Evolve from chests, then chase the 90% reduction cap",""]],
-  notes:""}
+  steps:[["Fill class slots: Iron Fist, then Seismic Shock","the guide's pair; Anvil is the Stormbreaker answer"],["God slots: Local Ragnarok, Frost Ring, Ray of Sickness","in that order as their gods appear"],["All In first, then Bottomless Stomach, Barricade, Concentration","damage reduction before damage"],["Take each active a 4th time to evolve it, then chase the 90% reduction cap","evolve gates at L18"]],
+  notes:""},
+ {id:"hammer",name:"Hammer Time",character:"Warden",kicker:"Nidhogg · Njord · Thor · ricochet spam · Insane+",status:"untested",maxDifficulty:null,
+  thesis:"Hammers ricochet, so four a throw is an <em>enemy-density</em> multiplier and every bounce rolls its own procs. Movement speed is the damage stat: Sea Legs converts it at 2:1. A lone boss eats one hammer.",
+  weapon:["Craftsman's Hammer","the Q doesn't scale here — pick for the passive stat line"],subclass:["Shieldbearer","swap to Adventurer if it grants movement speed · unverified"],
+  classActives:[["Magnetized Anvil","measured top class damage"],["Iron Fist","22 dmg ×4, 15% stun"]],
+  godActives:[["Raise Dead","Nidhogg","the only god slot · 100% slow holds packs in front of you"]],
+  passives:["Mithril Hammer","Blunt Force","Pulverize","Sea Legs","Explosive Nature","Blows of Jarngreipr","Wings of Fury","No Remorse"],
+  routes:[
+   {gods:["Nidhogg","Njord","Thor"],label:"core · untested",passives:[["Mithril Hammer",1],["Sea Legs",1],["Explosive Nature",1],["Blunt Force",1],["Blows of Jarngreipr",1],["Wings of Fury",1],["No Remorse",1],["Sheer Terror",1],["Fatal Trauma",1],["Pulverize",1,"L8"],["Mithril Hammer",2,"L8"],["Wings of Fury",2,"L8"],["No Remorse",2,"L8"],["Blows of Jarngreipr",2,"L8"],["Mithril Hammer",3,"L15"],["Wings of Fury",3,"L15"],["No Remorse",3,"L15"]],note:"CC is Blunt Force and Blows of Jarngreipr, both on every Attack, cashed in by Pulverize. Sheer Terror fears on Attack and Fatal Trauma slays the feared."},
+   {gods:["Nidhogg","Thor","Brokk & Sindri"],label:"no Njord · untested",passives:[["Mithril Hammer",1],["Teiwaz",1],["Explosive Nature",1],["Blunt Force",1],["Blows of Jarngreipr",1],["Perth",1],["No Remorse",1],["Raido",1],["Pulverize",1,"L8"],["Devastating Hit",1,"L8"],["Mithril Hammer",2,"L8"],["Teiwaz",2,"L8"],["Blows of Jarngreipr",2,"L8"],["Perth",2,"L8"],["Mithril Hammer",3,"L15"],["Teiwaz",3,"L15"],["Perth",3,"L15"]],note:"No Sea Legs, so skip Wings of Fury and let Teiwaz carry the damage. Perth is Attack crit; Devastating Hit makes it land harder."},
+   {gods:["Njord","Thor","Odin"],label:"no Nidhogg · untested",passives:[["Mithril Hammer",1],["Sea Legs",1],["Explosive Nature",1],["Blunt Force",1],["Blows of Jarngreipr",1],["Sleipnir's Speed",1],["Worthy Opponent",1],["Salted Wounds",1],["Overlord",1],["Pulverize",1,"L8"],["Devastating Hit",1,"L8"],["Mithril Hammer",2,"L8"],["Sleipnir's Speed",2,"L8"],["Blows of Jarngreipr",2,"L8"],["Overlord",2,"L8"],["Mithril Hammer",3,"L15"],["Sleipnir's Speed",3,"L15"]],note:"Only the Quickness virtue feeds Sea Legs here, so it returns +30%. Best elite route: Worthy Opponent and Salted Wounds both hit bosses."}
+  ],
+  godTier:{"Nidhogg":"S","Njord":"S","Thor":"A","Brokk & Sindri":"A","Odin":"A","Nerthus":"A","Loki":"B","Skadi":"B","Freya":"C"},
+  godWhy:{"Nidhogg":"Wings of Fury feeds Sea Legs; Sheer Terror into Fatal Trauma","Njord":"Sea Legs, one rank · Crashing Wave is Q-only","Thor":"Explosive Nature and Blows of Jarngreipr, both on Attack","Brokk & Sindri":"Teiwaz and Raido only · Uruz and Laguz scale the Q","Odin":"Sleipnir's Speed, Worthy Opponent · King of Gods is God Skills only","Nerthus":"Swiftness is move speed and attack speed in one rank","Loki":"Shapeshifter rides the same move-speed stat","Skadi":"Frost Armor only · survival","Freya":"Guidance is class-skill damage — dead here"},
+  picks:{"Nidhogg":["Wings of Fury","No Remorse","Sheer Terror","Fatal Trauma","Raise Dead"],"Njord":["Sea Legs","Salted Wounds"],"Thor":["Explosive Nature","Blows of Jarngreipr","Devastating Hit"],"Brokk & Sindri":["Teiwaz","Perth","Raido","Hagalaz"],"Odin":["Sleipnir's Speed","Worthy Opponent","Overlord"],"Nerthus":["Swiftness","Magic Fangs"],"Loki":["Shapeshifter","Gambler's Luck"],"Skadi":["Frost Armor"],"Freya":["Last Stand"]},
+  play:["<b>Two actives, not five.</b> The 4th pick evolves one, so two cost 8 levels and leave 17 passive ranks.","<b>Sea Legs</b> is the biggest single rank here: +106% attack damage at +53% move speed. Bank it the moment Njord shows.","<b>Read the trigger.</b> Reroll anything that fires on Block, on being hit, on Dash, on the Q, or boosts God or Class Skills. Only <em>on each Attack</em> rides the ricochet.","<b>Scored for Insane+.</b> Lower down, kill speed covers the fast, ranged and zoning threats on its own; spend the three CC ranks on damage instead.","<b>Boss window:</b> one hammer lands and both 5-target procs go quiet. Elite damage is No Remorse, Worthy Opponent and the two evolved actives."],
+  virtues:["Seasoned Soldier","Resolution","Quickness","Prowess","Power","Defence","Sturdiness","Recovery"],
+  steps:[["Mithril Hammer on sight, at every rank","ranks 2 and 3 gate at L8 and L15"],["Take Magnetized Anvil and Iron Fist four times each, then take no more actives","the 4th selection evolves an active · 8 levels, leaving 17 passive ranks"],["Bank Sea Legs the moment Njord shows, then rank move speed behind it","Wings of Fury ×3 is worth +48% attack damage through it"],["Explosive Nature and Blunt Force are one rank each","both fire on every Attack, so every bounce rolls them"],["CC comes from Attack procs: Blunt Force, Blows of Jarngreipr, Pulverize","reroll healing · sustain is on the virtues"]],
+  notes:"Untested — no logged run, and the difficulty threshold that justifies the CC ranks is a judgement, not a measurement. Triggers are read from the game's description strings (language_eng.xml, 2026-09-16); Lightning Nova and Bone Claw state none and are left out. Four mechanics come from player report (2026-09-15) and appear nowhere in the skill table: hammers ricochet and a lone boss takes one, projectiles roll procs independently, Mithril Hammer adds them to the basic throw, an active evolves on its 4th pick. Weapon and subclass stat lines are absent, so both slots are unverified. The throw's base damage and per-target attribution are absent too, so percentage cards cannot be compared against the flat procs and boss damage can never be read off a run."}
 ];
 
 /* ---------- state ---------- */
-let custom=[];let store=null;let current=BUILDS[0];
+let custom=[];let store=null;let current=BUILDS[0];let routeIx=0;
 function allBuilds(){return [...BUILDS,...custom]}
 
 /* ---------- render ---------- */
@@ -524,10 +555,21 @@ function renderLoadout(){
   slots.push(`<div class="slot gear"><span class="lab">weapon</span>${ico(b.weapon[0])}<span class="nm">${esc(b.weapon[0])}</span>${alt(b.weapon[1])}</div>`);
   slots.push(`<div class="slot gear"><span class="lab">subclass</span>${ico(b.subclass[0])}<span class="nm">${esc(b.subclass[0])}</span>${alt(b.subclass[1])}</div>`);
   $("#slots").innerHTML=slots.join("");$("#slots").style.setProperty("--n",String(slots.length));
-  $("#passives").style.setProperty("--rows",String(Math.ceil(b.passives.length/2)));
-  $("#passives").innerHTML=b.passives.map((p,i)=>`<span class="pchip"><b>${i+1}</b>${ico(p)}<span>${esc(p)}<span class="g">${esc(god(p))}</span></span></span>`).join("");
+  renderPassives();
   $("#innate").innerHTML=[["Ground Smash","dash becomes a shield smash"],["Tower Shield","blocks incoming hits"],["Iron Within","health, immune to slow"]].map(x=>`<span class="pchip" tabindex="0" data-tip="${esc(x[1])}" aria-label="${esc(x[0])}: ${esc(x[1])}">${ico(x[0])}<span>${esc(x[0])}</span></span>`).join("");
   $("#play").innerHTML=(b.play||[]).map(p=>`<p>${p}</p>`).join("")+(b.notes?`<p class="caveat">${esc(b.notes)}</p>`:"");
+}
+/* a build with routes shows one passive list per god draw; each entry is one pick: [passive, rank, level gate] */
+function renderPassives(){
+  const b=current,routes=b.routes||[],route=routes[routeIx];
+  const picks=route?route.passives:b.passives.map(p=>[p,0]);
+  /* one row per passive, ranks merged in pick order; a gate shows only when rank 1 itself is gated */
+  const list=[];picks.forEach(p=>{const row=list.find(x=>x[0]===p[0]);if(row){if(p[1])row[1].push(p[1])}else list.push([p[0],p[1]?[p[1]]:[],p[1]===1&&p[2]?p[2]:""])});
+  $("#passHead").textContent=route?`Passives · ${picks.length} picks for your gods`:"Passives · pick order";
+  $("#routes").innerHTML=routes.map((r,i)=>`<button class="route" type="button" data-r="${i}" aria-pressed="${i===routeIx}">${r.gods.map(g=>ico(g)).join("")}<span><span class="n">${esc(r.gods.join(" · "))}</span><span class="k">${esc(r.label)}</span></span></button>`).join("");
+  $("#passives").style.setProperty("--rows",String(Math.ceil(list.length/2)));
+  $("#passives").innerHTML=list.map((p,i)=>`<span class="pchip"><b>${i+1}</b>${ico(p[0])}<span>${esc(p[0])}<span class="g">${esc(god(p[0]))}${p[1].length?` · rank ${p[1].join("/")}`:""}${p[2]?` · ${esc(p[2])}+`:""}</span></span></span>`).join("");
+  $("#routeNote").textContent=route?"Take every rank 1 first; rank 2 from L8, rank 3 from L15. "+(route.note||""):"";$("#routeNote").hidden=!route;
 }
 function renderGods(){
   const b=current;
@@ -548,7 +590,7 @@ function findCard(g,name){for(const t of ["S","A","B","F"]){const c=(CARDS[g]&&C
 function renderOrder(){
   const b=current;
   $("#steps").innerHTML=(b.steps||[]).map(s=>`<li><div>${esc(s[0])}<span>${esc(s[1]||"")}</span></div></li>`).join("");
-  const marks=[[1,"actives · most passives",6],[6,"active rank 2",21],[8,"passive rank 2 · Pulverize unlocks",34],[10,"subclass card",47],[12,"active rank 3",60],[15,"passive rank 3 · Resonance unlocks",74],[18,"EVOLVE from chests",90,1]];
+  const marks=[[1,"actives · most passives",6],[6,"active rank 2",21],[8,"passive rank 2 · Pulverize unlocks",34],[10,"subclass card",47],[12,"active rank 3",60],[15,"passive rank 3 · Resonance unlocks",74],[18,"active EVOLVES · its 4th pick",90,1]];
   $("#track").innerHTML=`<div class="line"></div>`+marks.map(m=>`<div class="mark${m[3]?" big":""}" style="left:${m[2]}%"><div class="lv">L${m[0]}</div><div class="dot"></div><div class="what">${m[1]}</div></div>`).join("");
 }
 function renderVirtues(){
@@ -583,7 +625,7 @@ function readEditor(){
   return{name:$("#eName").value.trim()||"Untitled build",character:current.character||"Warden",kicker:GODS.filter(g=>gt[g]==="S").join(" · ")||"custom",status:$("#eStatus").value,
     thesisPlain:thesis,thesis:esc(thesis),weapon:[$("#eWeapon").value.trim()||"Dwarven Hammer",""],subclass:[$("#eSub").value,""],
     classActives:ca,godActives:ga,passives:[...ePass],godTier:gt,godWhy:{},picks:derivePicks(gt,ga,ePass),play:[],virtues:current.virtues||[],
-    steps:[["Fill both class slots: "+ca.map(c=>c[0]).join(", then "),"before L10"],["Fill the god slots: "+ga.map(g=>g[0]).join(", "),"as their gods appear"],["Passives in the listed order",""],["Evolve from chests",""]],
+    steps:[["Fill both class slots: "+ca.map(c=>c[0]).join(", then "),"before L10"],["Fill the god slots: "+ga.map(g=>g[0]).join(", "),"as their gods appear"],["Passives in the listed order",""],["Evolve each active with a 4th pick","gated at L18"]],
     notes:$("#eNotes").value.trim(),updatedAt:new Date().toISOString()};
 }
 function derivePicks(gt,ga,pass){const p={};GODS.forEach(g=>{p[g]=[...ga.filter(x=>x[1]===g).map(x=>x[0]),...pass.filter(x=>god(x)===g)];if(!p[g].length){const r=CARDS[g]||{};p[g]=[...(r.S||[]),...(r.A||[])].slice(0,2).map(c=>c[0])}});return p}
@@ -615,7 +657,8 @@ function localWrite(){try{localStorage.setItem("wf-builds",JSON.stringify(custom
 document.addEventListener("click",e=>{
   const bt=e.target.closest("[data-b]");
   if(bt){const id=bt.dataset.b;if(id==="__forge"){$("#forge").scrollIntoView({behavior:"smooth"});return}
-    const b=allBuilds().find(x=>x.id===id);if(b){current=b;renderAll();window.scrollTo({top:$("#loadout").offsetTop-80,behavior:"smooth"})}return}
+    const b=allBuilds().find(x=>x.id===id);if(b){current=b;routeIx=0;renderAll();window.scrollTo({top:$("#loadout").offsetTop-80,behavior:"smooth"})}return}
+  const rt=e.target.closest("#routes [data-r]");if(rt){routeIx=+rt.dataset.r;renderPassives();return}
   const more=e.target.closest(".board .more");if(more){const bd=more.closest(".board");bd.classList.toggle("open");more.textContent=bd.classList.contains("open")?"hide filler and reroll cards":"show filler and reroll cards";return}
   const pl=e.target.closest("#ePassList button");if(pl){ePass.splice(+pl.dataset.i,1);renderPassList();return}
 });
