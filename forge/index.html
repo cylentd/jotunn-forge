@@ -22,7 +22,7 @@
 }
 /* clip-path slices the 1px border off the cut corners; these layers redraw the diagonal in --cc.
    Declared per element so --cc resolves on that element and follows its hover/pressed border. */
-.bt,.plate,.gcard,.board,.btn,.slot{--cc:var(--etch);
+.bt,.plate,.gcard,.board,.btn,.slot,.spirit{--cc:var(--etch);
   --corner-tl:linear-gradient(to bottom right,transparent 50%,var(--cc) 50%,var(--cc) calc(50% + 1.2px),transparent calc(50% + 1.2px)) 0 0/12px 12px no-repeat;
   --corner-br:linear-gradient(to bottom right,transparent calc(50% - 1.2px),var(--cc) calc(50% - 1.2px),var(--cc) 50%,transparent 50%) 100% 100%/12px 12px no-repeat}
 *{box-sizing:border-box}
@@ -60,21 +60,39 @@ h1{font-family:var(--f-rune);font-weight:400;font-size:clamp(50px,8vw,92px);line
 /* build switcher */
 .switch{position:sticky;top:0;z-index:15;padding:10px 0 14px;transition:background .25s var(--ease)}
 .switch.stuck{background:linear-gradient(180deg,rgba(10,13,17,.97) 72%,rgba(10,13,17,0))}
-.switch .row{display:flex;flex-wrap:wrap;gap:8px}
+.switch .row{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+/* one picker per hero: the button names the hero and its selected build, the menu lists that hero's builds */
+.hpick{position:relative;flex:0 1 330px;min-width:0}
+.hpick>.bt{width:100%;min-width:0;grid-template-columns:auto minmax(0,1fr) auto}
+.hpick .bt .n,.hpick .bt .k{grid-column:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpick .bt img,.hpick .bt .tile{grid-column:1;grid-row:1 / span 2}
+.chev{grid-column:3;grid-row:1 / span 2;margin-right:4px;width:9px;height:9px;border-right:2px solid var(--bone-dim);border-bottom:2px solid var(--bone-dim);transform:translateY(-3px) rotate(45deg);transition:transform .2s var(--ease)}
+.bt[aria-expanded="true"] .chev{transform:translateY(2px) rotate(225deg)}
+.bmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:100%;width:max-content;max-width:min(460px,calc(100vw - 32px));display:grid;gap:2px;padding:6px;background:var(--iron);border:1px solid var(--etch-hot);box-shadow:0 18px 40px rgba(0,0,0,.55)}
+.bmenu[hidden]{display:none}
+.mi{font:inherit;display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:2px 12px;align-items:center;text-align:left;background:none;border:1px solid transparent;padding:8px 10px;color:var(--bone);cursor:pointer}
+.mi img,.mi .tile{width:40px;height:40px;grid-row:span 2}
+.mi .n{font-weight:800;font-size:16px;line-height:1.15}
+.mi .k{grid-column:2;font-family:var(--f-num);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--bone-dim)}
+.mi .status{grid-row:span 2;align-self:center}
+.mi:hover,.mi:focus-visible{background:var(--iron-2);border-color:var(--etch-hot);outline:none}
+.mi[aria-current="true"]{background:rgba(255,138,61,.12);border-color:rgba(255,138,61,.55)}.mi[aria-current="true"] .n{color:var(--ember)}
+.st-untested{color:var(--bone-dim);border-color:var(--etch-hot)}
+.bt.new{flex:0 0 auto;min-width:0}
 .bt{font:inherit;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center;text-align:left;background:var(--corner-tl),var(--corner-br),var(--iron);border:1px solid var(--etch);clip-path:var(--cut);padding:9px 16px 9px 10px;color:var(--bone);cursor:pointer;min-width:230px;transition:transform .25s var(--ease),border-color .25s var(--ease),background .25s var(--ease)}
 .bt img,.bt .tile{width:44px;height:44px;grid-row:span 2}
 .bt .n{font-weight:800;font-size:17px;letter-spacing:-.01em;line-height:1.1}
 .bt .k{font-family:var(--f-num);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-dim)}
 .bt:hover{transform:translateY(-2px);border-color:var(--etch-hot);--cc:var(--etch-hot)}
-.bt[aria-pressed="true"]{border-color:var(--ember);--cc:var(--ember);background:var(--corner-tl),var(--corner-br),linear-gradient(90deg,rgba(255,138,61,.16),var(--iron) 70%)}
-.bt[aria-pressed="true"] .k{color:var(--ember)}
+.bt[aria-pressed="true"],.bt[data-on="true"]{border-color:var(--ember);--cc:var(--ember);background:var(--corner-tl),var(--corner-br),linear-gradient(90deg,rgba(255,138,61,.16),var(--iron) 70%)}
+.bt[aria-pressed="true"] .k,.bt[data-on="true"] .k{color:var(--ember)}
 .bt:active{transform:scale(.98)}
 .bt.new{border-style:dashed;color:var(--bone-dim)}
 .status{font-family:var(--f-num);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid;white-space:nowrap}
 .st-tested{color:var(--jade);border-color:rgba(91,239,166,.5)}.st-community{color:var(--volt);border-color:rgba(125,216,255,.5)}.st-draft{color:var(--gold);border-color:rgba(255,209,102,.5)}.st-mine{color:var(--ember);border-color:rgba(255,138,61,.6)}
 
 /* sections */
-section{margin-top:50px;scroll-margin-top:92px}
+section{margin-top:50px;scroll-margin-top:calc(var(--switch-h,92px) + 12px)}
 h2{font-family:var(--f-ui);font-weight:800;font-size:26px;letter-spacing:-.015em;text-transform:uppercase;margin:0 0 6px;display:flex;align-items:center;gap:14px}
 h2 .bar{flex:1;height:2px;background:linear-gradient(90deg,var(--ember),transparent);transform-origin:left;animation:sweep .9s var(--ease) both}
 @keyframes sweep{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -84,7 +102,13 @@ h2 .bar{flex:1;height:2px;background:linear-gradient(90deg,var(--ember),transpar
 h4{font-family:var(--f-num);font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ember);margin:0 0 12px}
 
 /* loadout */
-.build-head{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+.build-head{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;margin:4px 0 18px}
+.bhero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px 32px;align-items:start;margin-bottom:24px}
+.bhero.plain{grid-template-columns:minmax(0,1fr)}.bhero.plain .spirit{display:none}
+.spirit{background:var(--corner-tl),var(--corner-br),var(--iron-2);border:1px solid var(--etch);--cc:var(--etch-hot);clip-path:var(--cut);padding:20px 26px 24px}
+.spirit .tag{font-family:var(--f-rune);font-size:clamp(25px,2.6vw,33px);line-height:1.1;color:var(--ember);margin:0 0 12px}
+.spirit .hype{font-size:18px;line-height:1.6;color:var(--bone);margin:0;max-width:62ch}
+.how{padding-top:6px}.how h4{margin-bottom:8px}.how .thesis{margin:0}
 .bname{font-family:var(--f-rune);font-size:clamp(30px,4vw,46px);font-weight:400;line-height:1.05;margin:0;color:var(--bone)}
 .charpill{display:inline-flex;align-items:center;gap:7px;font-family:var(--f-num);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 10px 2px 3px;border:1px solid rgba(255,138,61,.55);color:var(--ember);background:rgba(255,138,61,.08);white-space:nowrap}
 .charpill img,.charpill .tile{width:22px;height:22px;font-size:10px}
@@ -152,7 +176,7 @@ h4{font-family:var(--f-num);font-size:10.5px;font-weight:500;letter-spacing:.2em
 .gcard .why{align-self:start;font-size:11.5px;color:var(--bone-dim);text-align:center;line-height:1.2}
 .boards{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:14px;align-items:start}
 @media (max-width:600px){.boards{grid-template-columns:1fr}}
-.board{background:var(--corner-tl),var(--corner-br),linear-gradient(165deg,var(--iron) 0%,rgba(10,13,17,.7) 140%);border:1px solid var(--etch);clip-path:var(--cut);padding:0 0 8px;scroll-margin-top:92px}
+.board{background:var(--corner-tl),var(--corner-br),linear-gradient(165deg,var(--iron) 0%,rgba(10,13,17,.7) 140%);border:1px solid var(--etch);clip-path:var(--cut);padding:0 0 8px;scroll-margin-top:calc(var(--switch-h,92px) + 12px)}
 .board header{display:flex;align-items:center;gap:12px;padding:12px 16px 10px;border-bottom:1px solid var(--etch);background:linear-gradient(90deg,rgba(255,138,61,.08),transparent 60%)}
 .board header img,.board header .tile{width:46px;height:46px;font-size:18px}
 .board header h3{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:-.015em;margin:0}
@@ -256,15 +280,17 @@ footer{margin-top:56px;border-top:2px solid var(--etch);padding-top:16px;font-fa
 
 @media (max-width:900px){
   body{padding:0 16px 24px}
-  .switch .row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
-  .switch .row::-webkit-scrollbar{height:0}
-  .bt{min-width:210px;flex:none}
+  .hpick{flex:1 1 0}.hpick .bt{padding:8px 10px 8px 12px;gap:1px 8px;grid-template-columns:minmax(0,1fr) auto}.hpick .bt img,.hpick .bt .tile{display:none}
+  .hpick .bt .n,.hpick .bt .k{grid-column:1}.hpick .bt .n{font-size:15px}.hpick .bt .k{font-size:10px;letter-spacing:.06em}.chev{grid-column:2}
+  .bt.new .k,.bt.new .n{display:none}.bt.new{grid-template-columns:auto;padding:7px}.bt.new img,.bt.new .tile{width:36px;height:36px;grid-row:auto}
+  .switch .row{position:relative}.hpick{position:static}.bmenu{left:0;right:0;width:auto;max-width:none}
   .rules{position:static;margin:32px -16px 0}
   .rail{position:static;width:auto;flex-direction:row;border-right:none;border-bottom:1px solid var(--etch);padding:8px 4px;gap:4px;overflow-x:auto;margin:0 -16px 8px}
   .rail .sep{width:1px;height:34px;margin:0 6px}.rail .lab{display:none}
   .rules{left:0}
   .mast{grid-template-columns:66px 1fr;padding-block:22px 12px}.mast .hero{width:66px;height:66px}
   .boards{grid-template-columns:1fr}
+  .bhero{grid-template-columns:minmax(0,1fr);gap:14px}.spirit{padding:16px 18px 18px}.spirit .hype{font-size:17px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -290,7 +316,10 @@ footer{margin-top:56px;border-top:2px solid var(--etch);padding-top:16px;font-fa
       <span class="charpill" id="charPill"></span>
       <span class="pill diff" id="diffPill"></span>
     </div>
-    <p class="thesis" id="thesis"></p>
+    <div class="bhero" id="bhero">
+      <div class="spirit" id="spirit"><p class="tag" id="tagline"></p><p class="hype" id="hype"></p></div>
+      <div class="how"><h4>How it works</h4><p class="thesis" id="thesis"></p></div>
+    </div>
     <div class="slots" id="slots"></div>
     <div class="two" style="margin-top:14px">
       <div><h4 id="passHead">Passives · pick order</h4><div class="routes" id="routes"></div><div class="lenses" id="lenses"></div><div class="pchips" id="passives"></div><p class="caveat" id="routeNote" style="margin:8px 0 0" hidden></p></div>
@@ -395,6 +424,19 @@ footer{margin-top:56px;border-top:2px solid var(--etch);padding-top:16px;font-fa
       <p><b>Damage per kill tracks enemy health, not the build:</b> 89.1 here against 78.6 on Insane (+13%; enemy health +16% on the ladder table). The boss window ran 33.7 → 35.2 log min to the Jötunn kill, against 33.9 → 34.9 on the Thor route.</p>
       <p class="caveat">No Thor and 1,018 unlabelled: across 3 runs, unlabelled damage is large only with Thor's passives, so their procs sit outside Attack. Kill sum in the log is 3,624 against the screen's 5,336 (file cut off). The log's difficulty field reads "Custom".</p></div></div>
     <div class="finding"><div class="k no">Superseded 2026-09-16</div><div><p><b>Hammers and procs are about 26% of Hammer Time's damage.</b> Replaced by the Insane stats screen above: Attack alone is 63%. The log never records basic attacks or passive procs, so this comes from kills. On Helheim 1, the actives needed 46.1 damage per kill on Hard against 53.3 on Normal with an earlier build, while Hard enemies have 210/180 of Normal's health.</p><p class="caveat">Uses Svartalfheim's Normal-to-Hard ratio for Helheim (unverified). A lower bound: the earlier build's own throws were unlogged too. Enemy mix and overkill differ between runs.</p></div></div>
+    <div class="finding"><div class="k ok">Double Cross</div><div><p><b>Hard win, Jotunheim, Brokk · Odin · Thor (2026-09-16): Attack dealt only 30%, and her two class actives out-damaged it.</b> 211,088 damage in 19:05, 4,342 kills, Jötunn killed. The glaive is not the engine the build assumed.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Source</th><th class="n">Damage</th><th class="n">Share</th><th class="n">Picked</th><th class="n">Evolved</th></tr></thead>
+        <tbody>
+          <tr class="hot"><td class="k">Attack</td><td class="n">62,594</td><td class="n">30%</td><td class="n"></td><td class="n"></td></tr>
+          <tr><td class="k">Fallen Valkyries IV</td><td class="n">35,473</td><td class="n">17%</td><td class="n">4.2</td><td class="n">14.7</td></tr>
+          <tr><td class="k">Shadow Images IV</td><td class="n">32,449</td><td class="n">15%</td><td class="n">3.8</td><td class="n">25.3</td></tr>
+          <tr><td class="k">Local Ragnarok IV</td><td class="n">26,392</td><td class="n">13%</td><td class="n">3.5</td><td class="n">28.6</td></tr>
+          <tr><td class="k">Mjolnir IV</td><td class="n">18,233</td><td class="n">9%</td><td class="n">1.8</td><td class="n">30.8</td></tr>
+          <tr><td class="k">Ball Lightning I</td><td class="n">11,439</td><td class="n">5%</td><td class="n">7.5</td><td class="n"></td></tr>
+          <tr class="dim"><td class="k">Whirlwind (Q)</td><td class="n">2,813</td><td class="n">1%</td><td class="n"></td><td class="n"></td></tr>
+        </tbody></table></div>
+      <p><b>2,287 damage taken over 71 hits</b>, 841 of it after log minute 34, the boss window. Hammer Time's Hard win took 0 over 27 hits. Standing in melee for Stand &amp; Fight is where the damage comes from. Picks drifted from the route: no Nightmare, Stand &amp; Fight stopped at rank 2 (20.6), Vengeful Reach rank 2 at 31.9, Shadowblade at 25.7. Teiwaz and Raido were both taken a 4th time (21.4, 22.7), so passives evolve too.</p><p class="caveat">One run on Hard, n = 1, different map from the Warden Hard win. 21,695 damage (10%) is unlabelled on the stats screen, likely Soul Remnant and procs. Picked and Evolved are log minutes (analytics, 2026-09-16); the log was cut off before Level End, and its 3,535 kills run 19% under the screen.</p></div></div>
     <div class="finding"><div class="k open">Next test</div><div><p><b>Hammer Time on Nightmare 2 (310%).</b> Both wins took Sea Legs after 21 log min; bank it before 10. Record damage taken and the log minute of the Jötunn kill.</p></div></div>
     <div class="finding"><div class="k open">Next test</div><div><p><b>Nightmare 2 (310%)</b> with Thor · Freya · Brokk and the Insane run's picks. Record damage taken in the last 4 minutes and the minute the 4th active evolves.</p></div></div>
   </div>
@@ -504,11 +546,13 @@ const ALIASR=Object.fromEntries(Object.entries(ALIAS).map(([a,b])=>[b,a]));
 /* in-game description (game spelling, from descriptions.js), plus an optional note on its own line */
 function desc(name){return DESCS[norm(name)]||DESCS[norm(ALIAS[name]||"")]||DESCS[norm(ALIASR[norm(name)]||"")]||""}
 function tipAttr(name,note){const t=[desc(name),note].filter(Boolean).join("\n");return t?` tabindex="0" data-tip="${esc(t)}" aria-label="${esc(name)}: ${esc(t)}"`:""}
-function god(name){return godOf.get(norm(name))||godOf.get(norm(ALIAS[name]||""))||"Warden"}
-function kindOf(name){const s=SKILLS.find(x=>norm(x.name)===norm(name)||norm(x.name)===norm(ALIAS[name]||""));return s?s.kind:"passive"}
+/* class cards outside skills.js (every hero but Warden) belong to the current build's character */
+function god(name){return godOf.get(norm(name))||godOf.get(norm(ALIAS[name]||""))||(current&&current.character)||"Warden"}
+function kindOf(name){const s=SKILLS.find(x=>norm(x.name)===norm(name)||norm(x.name)===norm(ALIAS[name]||""));if(s)return s.kind;const c=findCard(current&&current.character,name);return c&&c[2]?"class_active":"passive"}
 
 /* ---------- every card, graded (base grades; builds override rows they care about) ---------- */
 const CARDS={
+ "Kinslayer":{S:[["Stand & Fight","+30% attack damage, +60% standing still"],["Nightmare","Soul Remnant Curse 20% → 40%; Curse = +30% damage taken"],["Fallen Valkyries","30 dmg pull on 2.5 s · evolved: 3 Valkyries, 25% stun",1],["Shadow Images","evolved: 7 decoys × (25 + 30 explosion) on 5 s",1]],A:[["Shadowblade","+50% class skill damage · needs unlock"],["Vengeful Reach","+40% attack range"],["Weighted Glaive","+30% crit damage"],["Ruthlessness","+10% crit chance, all sources"],["Rancor","Soul Remnant hits 4 more enemies"],["Charge of the Damned","evolved: 7 × 80 dmg on 12 s · needs unlock",1]],B:[["Castigation","crits Cripple 80%, from 50%"],["Javelins","",1],["Siphon Life"],["Deathly Hallows","+20% healing, +15% per revive · L15"],["Dead Memories"],["Exiled Winds","+12% movement speed"]],F:[["Spear Barrier","wall holds packs outside melee range",1],["Riposte"],["Faithless Leap"],["Blink"],["Sharp Feathers","3 dmg × 15 on Dash"]]},
  "Warden":{S:[["Magnetized Anvil","24 + 18 dmg on a 2 s cooldown",1],["Iron Fist","22 dmg ×4, 15% stun; feeds Pulverize",1],["Pulverize","+25% damage to anything stunned · L8"]],A:[["Law & Order","+24% god skill damage"],["Resonance","15% cooldown reset per stun · L15"],["Blunt Force","7% stun on every attack"]],B:[["Shieldwall","",1],["Rock Solid"],["Mithril Hammer"],["Barricade"],["Deafening Impact"],["Punish"],["Bottomless Stomach"],["Earthquake"]],F:[["Hammertime","",1],["Seismic Shock","",1],["Retribution"],["Blood & Thunder"],["Tremors"],["Rebound"],["Last Vigilance"]]},
  "Thor":{S:[["Mjolnir","30 dmg, pierces 12 m out and back · 21% of Insane damage",1],["Ball Lightning","20 dmg on a 1.75 s cooldown · top damage in both runs",1],["Overwhelming Potential","+40% to every Thor lightning skill"],["Might of Megingjord","+36% god skill damage"]],A:[["Thunderstorm","10 strikes × 20 dmg",1],["Devastating Hit","+10% crit chance, +30% crit damage · L8"]],B:[["Goat Feast"],["Lightning Nova"],["Sentinel","",1]],F:[["Lightning Strike","",1],["Explosive Nature"],["Static Charge"],["Blows of Jarngreipr"],["Discharge"]]},
  "Brokk & Sindri":{S:[["Mannaz","+45% class skill damage"],["Ansuz","+45% god skill damage"]],A:[["Inguz","+36% crit damage, class and god"],["Teiwaz","+45% attack damage"],["Berkana","+220 max health"]],B:[["Perth"],["Raido"],["Hagalaz"],["Thurisaz"],["Uruz"],["Laguz"],["Eiwaz"]],F:[["Kaunaz"],["Gebo"],["Jera"]]},
@@ -532,13 +576,16 @@ const VIRTUES={
  "Callous Cruelty":["Nidhogg","+35% crit damage","next"],"Power Overwhelming":["Nidhogg","+22% god skill damage","next"],"Rulebreaker":["Nidhogg","+40% bonus class/god choice","next"],
  "Fehu Runestone":["Brokk & Sindri","+30% resources","own"],"Nauthiz Runestone":["Brokk & Sindri","+8% double skill or reward","own"],
  "Badger's Endurance":["Nerthus","+100 max health","buy"],"Lizard's Regeneration":["Nerthus","+24% healing power","buy"],"Bear's Strength":["Nerthus","+9% attack damage","buy"],
- "Dodging":["Loki","+20% evasion","buy"],"Quickness":["Loki","+15% movement speed","own"]
+ "Dodging":["Loki","+20% evasion","buy"],"Quickness":["Loki","+15% movement speed","own"],
+ "Graceful Agility":["Kinslayer","+7% movement speed, −14% dash cooldown","next"],"Transience":["Kinslayer","+15% evasion","next"],"Stunning Madness":["Kinslayer","17% stun for 2 s on Curse","next"],"Rapture":["Kinslayer","120 dmg in 8 m on revive","next"]
 };
 const VLABEL={own:"owned",part:"partial",buy:"not bought",next:"buy next"};
 
 /* ---------- builds ---------- */
 const BUILDS=[
  {id:"storm",name:"Stormbreaker",character:"Warden",kicker:"Thor core · stun & lightning",status:"tested",maxDifficulty:"Insane",
+  tagline:"Pin them down. Call down the storm.",
+  spirit:"Iron Fist and Magnetized Anvil stun the front line solid, and Pulverize turns every stunned body into a bigger target. Then Thor gets to work: Mjolnir tears out and back through the pack while Ball Lightning chews through whatever is still twitching. Race your evolves and the storm is at full strength before the boss arrives.",
   thesis:"Hammers stun, Pulverize adds 25% to anything stunned, and Thor's lightning cashes in. <em>Evolve speed</em> decides the run.",
   weapon:["Dwarven Hammer","+50 health, no stun (game data)"],subclass:["Shieldbearer",""],
   classActives:[["Magnetized Anvil","18–24% of damage"],["Iron Fist","22–30% of damage"]],
@@ -557,6 +604,8 @@ const BUILDS=[
   steps:[["Fill both class slots: Magnetized Anvil, then Iron Fist","before L10 so both reach rank 3 by L12"],["Fill the three god slots: Mjolnir and Ball Lightning the moment Thor appears","third slot: Local Ragnarok, or Valkyrie Descent on the Brokk · Freya route"],["Passives: follow the route for the gods you drew","10 ranks; the route list is in the Loadout"],["Take each active a 4th time to evolve it: Mjolnir, Anvil, Ball Lightning, Iron Fist","gated at L18 · then Ansuz on a Brokk route"]],
   notes:"Routes are scored from game data: bonuses on the same stat add, different stats multiply (inferred from the game's stat names, not seen in code). No route has a logged run yet."},
  {id:"bastion",name:"Frost Bastion",character:"Warden",kicker:"Odin · Skadi · Nidhogg · Endless",status:"community",maxDifficulty:null,
+  tagline:"The horde breaks. You don't.",
+  spirit:"Endless is a war of attrition, and this dwarf is built to outlast it. Every chest buys damage reduction toward the cap, healing is traded for armor, and Frost Ring locks the pack in ice while Local Ragnarok wipes the screen.",
   thesis:"Built for Endless: stack damage reduction toward <em>90%</em> and trade healing for mitigation.",
   weapon:["Craftsman's Hammer",""],subclass:["Shieldbearer","a shield every 70 s"],
   classActives:[["Iron Fist",""],["Seismic Shock",""]],
@@ -570,6 +619,8 @@ const BUILDS=[
   steps:[["Fill class slots: Iron Fist, then Seismic Shock","the guide's pair; Anvil is the Stormbreaker answer"],["God slots: Local Ragnarok, Frost Ring, Ray of Sickness","in that order as their gods appear"],["All In first, then Bottomless Stomach, Barricade, Concentration","damage reduction before damage"],["Take each active a 4th time to evolve it, then chase the 90% reduction cap","evolve gates at L18"]],
   notes:""},
  {id:"hammer",name:"Hammer Time",character:"Warden",kicker:"Nidhogg · Njord · Thor · ricochet spam · Insane+",status:"tested",maxDifficulty:"Nightmare 1",
+  tagline:"Stop. Hammer time.",
+  spirit:"Your basic throw is the build. Four hammers leave your hand, ricochet through the pack, and every bounce rolls its own procs. Sea Legs turns movement speed into attack damage, so the faster you run, the harder they land. On Insane, plain throws out-damaged all five actives combined.",
   thesis:"Hammers ricochet, so four a throw is an <em>enemy-density</em> multiplier and every bounce rolls its own procs. Movement speed is the damage stat: Sea Legs converts it at 2:1. A lone boss eats one hammer.",
   weapon:["Craftsman's Hammer","the Q doesn't scale here — pick for the passive stat line"],subclass:["Shieldbearer","swap to Adventurer if it grants movement speed · unverified"],
   classActives:[["Magnetized Anvil","measured top class damage"],["Iron Fist","22 dmg ×4, 15% stun"]],
@@ -587,7 +638,70 @@ const BUILDS=[
   play:["<b>Fill all five active slots.</b> The game keeps offering new actives until five are taken, and they crowd out the passives. Evolve the two class actives (8 levels), take three god actives once each (3 levels), and 14 passive ranks remain. Skip or banish upgrades to the three fillers.","<b>Sea Legs</b> is the biggest single rank here: +98% attack damage at +49% move speed (Quickness, Wings of Fury ×3, Ebb & Swell). Bank it the moment Njord shows.","<b>Read the trigger.</b> Reroll anything that fires on Block, on being hit, on Dash, on the Q, or boosts God or Class Skills. Only <em>on each Attack</em> rides the ricochet.","<b>Scored for Insane+.</b> Lower down, kill speed covers the fast, ranged and zoning threats on its own; spend the three CC ranks on damage instead.","<b>Boss window:</b> one hammer lands and both 5-target procs go quiet. Elite damage is Salted Wounds and the two evolved actives. Stat bars score each route; BOSS assumes bosses ignore stun."],
   virtues:["Seasoned Soldier","Resolution","Quickness","Prowess","Power","Defence","Sturdiness","Recovery"],
   steps:[["Mithril Hammer on sight, at every rank","ranks 2 and 3 gate at L8 and L15"],["Take Magnetized Anvil and Iron Fist four times each","the 4th selection evolves an active · 8 levels"],["Fill the three god slots early, one pick each: Raise Dead, Mjolnir, Ball Lightning","ends new-active offers so passives show up · Local Ragnarok if no Nidhogg · 14 passive ranks remain"],["Bank Sea Legs the moment Njord shows, then rank move speed behind it","Wings of Fury ×3 is worth +48% attack damage through it"],["Explosive Nature and Blunt Force are one rank each","both fire on every Attack, so every bounce rolls them"],["CC comes from Attack procs: Blunt Force, Blows of Jarngreipr, Pulverize","reroll healing · sustain is on the virtues"]],
-  notes:"One logged Hard win (Helheim 2, 2026-09-16). Two Insane Helheim runs (2026-09-16): one quit at the boss (Attack 63% of damage), one won on the Njord · Thor · Odin route (Attack 54%). One Nightmare 1 win on the Njord · Nidhogg · Nerthus route (Attack 57%). Nightmare 2+ is untested, and the difficulty threshold that justifies the CC ranks is a judgement, not a measurement. Triggers are read from the game's description strings (language_eng.xml, 2026-09-16); Lightning Nova and Bone Claw state none and are left out. Five mechanics come from player report and appear nowhere in the skill table: hammers ricochet and a lone boss takes one, projectiles roll procs independently, Mithril Hammer adds them to the basic throw, an active evolves on its 4th pick (2026-09-15); new actives stay in the offer pool until five slots are filled, and upgrades to owned actives stay in it after that (2026-09-16). Weapon and subclass stat lines are absent, so both slots are unverified. The throw's base damage and per-target attribution are absent too, so percentage cards cannot be compared against the flat procs and boss damage can never be read off a run."}
+  notes:"One logged Hard win (Helheim 2, 2026-09-16). Two Insane Helheim runs (2026-09-16): one quit at the boss (Attack 63% of damage), one won on the Njord · Thor · Odin route (Attack 54%). One Nightmare 1 win on the Njord · Nidhogg · Nerthus route (Attack 57%). Nightmare 2+ is untested, and the difficulty threshold that justifies the CC ranks is a judgement, not a measurement. Triggers are read from the game's description strings (language_eng.xml, 2026-09-16); Lightning Nova and Bone Claw state none and are left out. Five mechanics come from player report and appear nowhere in the skill table: hammers ricochet and a lone boss takes one, projectiles roll procs independently, Mithril Hammer adds them to the basic throw, an active evolves on its 4th pick (2026-09-15); new actives stay in the offer pool until five slots are filled, and upgrades to owned actives stay in it after that (2026-09-16). Weapon and subclass stat lines are absent, so both slots are unverified. The throw's base damage and per-target attribution are absent too, so percentage cards cannot be compared against the flat procs and boss damage can never be read off a run."},
+ {id:"wildhunt",name:"Wild Hunt",character:"Kinslayer",kicker:"Brokk · Skadi · Odin · Valkyries & curses · Shadow Archon",status:"theory",maxDifficulty:null,
+  tagline:"Ride with the damned.",
+  spirit:"Stop swinging and start commanding. Fallen Valkyries crash into the pack, shadow phantoms explode in the gaps, and two Soul Remnants curse everything that survives, healing you with every curse. Frost pins the horde in place while you keep moving, so the damage never needs you in melee.",
+  thesis:"On the Hard win her two class actives out-damaged her glaive (32% vs 30%) with one late Shadowblade rank. This build puts the multipliers behind them: Shadowblade and Mannaz for class damage, Ansuz for the god actives. Shadow Archon adds a second Soul Remnant, and <em>every Curse heals 0.5% HP</em>.",
+  weapon:["Drowned Glaive","Darktide Q · −18% dash cooldown passive"],subclass:["Shadow Archon","+1 Soul Remnant · +15% movement speed · heal 0.5% HP per Curse"],
+  innate:[["Soul Remnant","attacks nearby enemies: 20 dmg, 20% Curse for 3 s"],["Maiming","+50% attack damage · crits Cripple 50% for 4 s"],["Wing Beat","+20% dash distance · dash knocks back"]],
+  classActives:[["Fallen Valkyries","35,473 dmg on the Hard win · 17%"],["Shadow Images","32,449 dmg on the Hard win · 15%"]],
+  godActives:[["Frost Ring","Skadi","35% freeze in a 7 m ring · evolve it"],["Arctic Arrow","Skadi","100% freeze, 3 s · evolve it"],["Local Ragnarok","Odin","26,392 dmg on the Hard win · 13%"]],
+  passives:["Shadowblade","Mannaz","Nightmare","Ansuz","Concentration","Rancor"],
+  routes:[
+   {gods:["Brokk & Sindri","Skadi","Odin"],label:"best · untested",passives:[["Shadowblade",1],["Mannaz",1],["Nightmare",1],["Ansuz",1],["Concentration",1],["Rancor",1],["Shadowblade",2,"L8"],["Mannaz",2,"L8"],["Ansuz",2,"L8"],["Rancor",2,"L8"],["Frost Armor",1],["Mannaz",3,"L15"],["Ansuz",3,"L15"],["Mannaz",4]],note:"Class damage from Shadowblade and Mannaz, god damage from Ansuz. Nightmare and Rancor put Curse on more of the pack, and each Curse heals. The 4th Mannaz pick evolves it, as Teiwaz and Raido did on the Hard win."},
+   {gods:["Njord","Skadi","Odin"],label:"no Brokk · untested",passives:[["Shadowblade",1],["Torrents",1],["Nightmare",1],["Salted Wounds",1],["Concentration",1],["Rancor",1],["Shadowblade",2,"L8"],["Torrents",2,"L8"],["King of Gods",1],["Rancor",2,"L8"],["King of Gods",2,"L8"],["Frost Armor",1],["Torrents",3,"L15"],["Rancor",3,"L15"]],note:"No Mannaz or Ansuz, so cooldowns do the scaling: Torrents and Concentration cut class and god cooldowns. King of Gods covers the god actives."},
+   {gods:["Brokk & Sindri","Thor","Odin"],label:"the Hard win's gods · untested",godActives:[["Local Ragnarok","Odin","26,392 dmg on the Hard win · 13%"],["Mjolnir","Thor","18,233 dmg on the Hard win · 9%"],["Ball Lightning","Thor","rank 1 did 11,439 · evolve it this time"]],passives:[["Shadowblade",1],["Mannaz",1],["Nightmare",1],["Ansuz",1],["Overwhelming Potential",1],["Concentration",1],["Shadowblade",2,"L8"],["Mannaz",2,"L8"],["Ansuz",2,"L8"],["Overwhelming Potential",2,"L8"],["Rancor",1],["Mannaz",3,"L15"],["Ansuz",3,"L15"],["Might of Megingjord",1]],note:"The same gods as the Hard win, with the Teiwaz and Raido ranks moved to Mannaz and Ansuz. No Skadi, so no freeze: keep moving."}
+  ],
+  godTier:{"Brokk & Sindri":"S","Skadi":"S","Odin":"S","Njord":"A","Thor":"A","Nidhogg":"B","Loki":"B","Nerthus":"C","Freya":"C"},
+  godWhy:{"Brokk & Sindri":"Mannaz and Ansuz","Skadi":"Frost Ring and Arctic Arrow freeze the pack · Frost Armor","Odin":"Local Ragnarok did 13% on Hard · Concentration","Njord":"Torrents · Lost Drakkar Curses at rank 3","Thor":"Mjolnir, Ball Lightning, Overwhelming Potential","Nidhogg":"No Remorse only","Loki":"Parasite only","Nerthus":"Cure Wounds only","Freya":"reported locked for Kinslayer (community)"},
+  picks:{"Kinslayer":["Fallen Valkyries","Shadow Images","Shadowblade","Nightmare","Rancor"],"Brokk & Sindri":["Mannaz","Ansuz"],"Skadi":["Frost Ring","Arctic Arrow","Frost Armor"],"Odin":["Local Ragnarok","Concentration","King of Gods"],"Njord":["Torrents","Salted Wounds","Lost Drakkar"],"Thor":["Mjolnir","Ball Lightning","Overwhelming Potential","Might of Megingjord"],"Nidhogg":["No Remorse"],"Loki":["Parasite"],"Nerthus":["Cure Wounds"]},
+  play:["<b>Keep moving.</b> Every damage source here is an active, so nothing needs you in melee. Wing Beat knocks back on every dash, and the weapon passive dashes more often.","<b>Evolve all five actives.</b> The Hard win made ~35 picks in 19 minutes; five evolves take 20 and leave ~14 passive ranks.","<b>Curse is the multiplier and the healing.</b> Take Nightmare and Rancor early: two Remnants, more Curses, 0.5% HP back on each. Stunning Madness stuns on Curse.","<b>Skip every Attack card.</b> Teiwaz, Raido and Stand & Fight fed the glaive's 30% on Hard.","<b>Freya is reported locked for Kinslayer.</b> No route here needs her."],
+  virtues:["Stunning Madness","Transience","Graceful Agility","Power","Power Overwhelming","Calmness","Defence","Callous Cruelty"],
+  steps:[["Fallen Valkyries and Shadow Images on sight, four picks each","the Hard win evolved Valkyries at 14.7 log min"],["Shadowblade and Nightmare at rank 1","class damage and Curse before anything else"],["God slots: Frost Ring, Arctic Arrow, Local Ragnarok","evolve all three · Mjolnir and Ball Lightning if no Skadi"],["Take Shadow Archon at the subclass card","second Soul Remnant, heal on Curse"],["Mannaz and Ansuz to rank 3, then a 4th pick","the 4th pick evolves a passive"]],
+  notes:"Untested. Built from one Hard win on Double Cross (Jotunheim, 2026-09-16): class actives 32%, Attack 30%, Local Ragnarok 13%, 2,287 damage taken. Community input from r/hordesofhel (search summary and one Endless post, read 2026-09-16): freeze, attack range and life on kill early, cooldown reduction late; a dash cooldown weapon; Freya locked for Kinslayer; an Endless Niflheim run where Frost Ring IV, Einherjar IV and Fallen Valkyries IV each out-damaged Attack. Endless is a different mode, so it only corroborates. Unverified: Shadow Archon's heal cap, what an evolved passive changes, and the Freya lock (not in the skill tables). Shadowblade carries an unlock requirement in the skill table."},
+ {id:"doublecross",name:"Double Cross",character:"Kinslayer",kicker:"Brokk · Odin · Thor · glaive crits · Warglaive",status:"tested",maxDifficulty:"Hard",
+  tagline:"Strike twice. Curse them all.",
+  spirit:"Freya banished her for killing her own kin, and she has been settling scores ever since. Plant your feet in the middle of the horde, let the Fallen Valkyries drag the pack onto your glaive, and swing. A third of your cuts land twice, crits leave enemies crippled, and your Soul Remnant curses everything nearby so it all dies faster.",
+  thesis:"Warglaive adds 25% attack speed and a 33% Double Strike, innate Maiming adds 50% attack damage, and innate Soul Remnant Curses the pack so it takes <em>+30% from everything</em>.",
+  weapon:["Light Lance","Whirlwind Q · +8% attack speed passive · the Q doesn't scale here"],subclass:["Warglaive","+25% attack speed · 33% Double Strike on Attack · +12% evasion"],
+  innate:[["Soul Remnant","attacks nearby enemies: 20 dmg, 20% Curse for 3 s"],["Maiming","+50% attack damage · crits Cripple 50% for 4 s"],["Wing Beat","+20% dash distance · dash knocks back"]],
+  classActives:[["Fallen Valkyries","pulls packs into glaive range · evolved: 3 Valkyries, 25% stun"],["Shadow Images","evolved: 7 decoys × (25 + 30 explosion)"]],
+  godActives:[["Mjolnir","Thor","slot filler"],["Ball Lightning","Thor","slot filler"],["Local Ragnarok","Odin","slot filler · the boss burst"]],
+  passives:["Stand & Fight","Nightmare","Vengeful Reach","Teiwaz","Raido","Sleipnir's Speed","Ruthlessness","Devastating Hit"],
+  routes:[
+   {gods:["Brokk & Sindri","Odin","Thor"],label:"best · untested",passives:[["Stand & Fight",1],["Nightmare",1],["Vengeful Reach",1],["Teiwaz",1],["Raido",1],["Sleipnir's Speed",1],["Ruthlessness",1],["Stand & Fight",2,"L8"],["Vengeful Reach",2,"L8"],["Teiwaz",2,"L8"],["Sleipnir's Speed",2,"L8"],["Devastating Hit",1,"L8"],["Stand & Fight",3,"L15"],["Teiwaz",3,"L15"]],note:"Attack damage from Stand & Fight and Teiwaz, attack speed from Raido and Sleipnir's Speed, crit from Ruthlessness and Devastating Hit. Nightmare is one rank for twice the Curse. Brokk has no actives, so the fillers come from Thor and Odin."},
+   {gods:["Njord","Brokk & Sindri","Nidhogg"],label:"move speed · untested",godActives:[["Raise Dead","Nidhogg","slot filler · 100% slow holds packs in front of you"],["Lost Drakkar","Njord","slot filler"],["Leviathan","Njord","slot filler"]],passives:[["Sea Legs",1],["Stand & Fight",1],["Nightmare",1],["Exiled Winds",1],["Teiwaz",1],["Wings of Fury",1],["Vengeful Reach",1],["Ebb & Swell",1],["Stand & Fight",2,"L8"],["Wings of Fury",2,"L8"],["Teiwaz",2,"L8"],["Vengeful Reach",2,"L8"],["Stand & Fight",3,"L15"],["Wings of Fury",3,"L15"]],note:"Hammer Time's engine on a glaive. Quickness 15 + Exiled Winds 12 + Wings of Fury 24 + Ebb & Swell ~10 = ~61% movement speed, so Sea Legs gives ~+122% attack damage. Movement speed is a stat, so it still counts while you stand for Stand & Fight."},
+   {gods:["Odin","Nidhogg","Thor"],label:"no Brokk · untested",godActives:[["Mjolnir","Thor","slot filler"],["Ball Lightning","Thor","slot filler"],["Raise Dead","Nidhogg","slot filler · 100% slow"]],passives:[["Stand & Fight",1],["Nightmare",1],["Vengeful Reach",1],["Sleipnir's Speed",1],["No Remorse",1],["Ruthlessness",1],["Weighted Glaive",1],["Stand & Fight",2,"L8"],["Vengeful Reach",2,"L8"],["Sleipnir's Speed",2,"L8"],["No Remorse",2,"L8"],["Devastating Hit",1,"L8"],["Stand & Fight",3,"L15"],["Sleipnir's Speed",3,"L15"]],note:"No Teiwaz, so No Remorse and Sleipnir's Speed carry the scaling. Weighted Glaive and Devastating Hit stack +60% crit damage on Ruthlessness's crit."}
+  ],
+  godTier:{"Brokk & Sindri":"S","Odin":"S","Njord":"A","Nidhogg":"A","Thor":"A","Nerthus":"B","Loki":"C","Skadi":"C","Freya":"C"},
+  godWhy:{"Brokk & Sindri":"Teiwaz and Raido · Perth if crit is short","Odin":"Sleipnir's Speed, Overlord · Local Ragnarok fills a slot","Njord":"Sea Legs turns move speed into attack damage at 2:1","Nidhogg":"No Remorse, Wings of Fury · Raise Dead fills a slot","Thor":"Devastating Hit · Mjolnir and Ball Lightning fill two slots","Nerthus":"Swiftness is move speed and attack speed in one rank","Freya":"reported locked for Kinslayer (community)","Loki":"Gambler's Luck only","Skadi":"Frost Armor only · survival"},
+  picks:{"Kinslayer":["Fallen Valkyries","Shadow Images","Stand & Fight","Nightmare","Vengeful Reach","Ruthlessness","Weighted Glaive"],"Brokk & Sindri":["Teiwaz","Raido","Perth"],"Odin":["Sleipnir's Speed","Overlord","Local Ragnarok"],"Njord":["Sea Legs","Ebb & Swell","Salted Wounds"],"Nidhogg":["No Remorse","Wings of Fury","Raise Dead"],"Thor":["Devastating Hit","Mjolnir","Ball Lightning"],"Nerthus":["Swiftness"],"Loki":["Gambler's Luck"],"Skadi":["Frost Armor"]},
+  play:["<b>Basic Attack is the engine.</b> Reroll anything that boosts God or Class Skills, fires on Block, or fires on the Q.","<b>Curse is free.</b> Soul Remnant is innate. Nightmare doubles its Curse chance for one rank, and a Cursed enemy takes +30% from your glaive, procs and actives alike.","<b>Stand, swing, step.</b> Stand & Fight doubles while standing still, so let packs come to you and move only when they close in.","<b>Fill all five active slots early.</b> Evolve the two class actives (8 levels), take the three god fillers once each (3 levels); ~14 passive ranks remain.","<b>Insane+ survival:</b> swap a late Teiwaz rank for Castigation (crits Cripple 80%) if melee hits start to hurt."],
+  virtues:["Resolution","Prowess","Power","Quickness","Transience","Stunning Madness","Callous Cruelty","Graceful Agility"],
+  steps:[["Stand & Fight and Nightmare on sight","Stand & Fight ranks 2 and 3 gate at L8 and L15"],["Take Fallen Valkyries and Shadow Images four times each","the 4th pick evolves at L18 · 8 levels"],["Fill the three god slots early, one pick each","ends new-active offers so passives show up"],["Take Warglaive at the L10 subclass card","+25% attack speed and Double Strike"],["Attack cards for the gods you drew","follow the route in the Loadout · reroll God and Class Skill cards"]],
+  notes:"One Hard win (Jotunheim, 2026-09-16): Attack was 30% of damage and Fallen Valkyries + Shadow Images 32%, with 2,287 damage taken. The Attack-engine thesis did not hold on that run; see Runs. Card numbers and level gates are from the installed game's Survivor_SkillDescription.csv and prefabHierarchy_skills.json (2026-09-16). Stand & Fight is unlocked (player, 2026-09-16); Shadowblade and Charge of the Damned carry an unlock requirement in the skill table. None of her four temple virtues are owned yet, and skill points cover all four (player, 2026-09-16). Absent from the data: her base attack damage, attack speed, crit, swing shape, and Soul Remnant's attack interval. Unverified: whether Double Strike rolls on-Attack procs, whether Vengeful Reach widens the swing arc, and how much Curse uptime Soul Remnant keeps. The five-slot and 4th-pick-evolves mechanics come from Warden play (2026-09-16). Stat bars need a Kinslayer attack model and are not drawn."},
+ {id:"deathwish",name:"Death Wish",character:"Kinslayer",kicker:"Brokk · Thor · Odin · revive stacks · Restless Spirit",status:"theory",maxDifficulty:null,
+  tagline:"Die. Rise. Hit harder.",
+  spirit:"Every death is a power spike. Restless Spirit drags her back from Hel three times, and each return hits harder: bigger shadow blasts, heavier Valkyrie strikes, meaner lightning. Rapture detonates as she rises, so whatever killed her pays first. Save the dying for the boss and come back as its worst problem.",
+  thesis:"Restless Spirit gives 3 revives, and each revive stacks <em>+20% class and god damage</em>. Class and god damage cards multiply the stacks, and Rapture blasts the area on every return.",
+  weapon:["War Spear","Tether Q · +12% class skill damage passive"],subclass:["Restless Spirit","+3 revives · each revive: +20% class and god damage, −15% damage reduction"],
+  innate:[["Soul Remnant","attacks nearby enemies: 20 dmg, 20% Curse for 3 s"],["Maiming","+50% attack damage · crits Cripple 50% for 4 s"],["Wing Beat","+20% dash distance · dash knocks back"]],
+  classActives:[["Shadow Images","evolved: 7 decoys × (25 + 30 explosion) on 5 s"],["Fallen Valkyries","30 dmg on 2.5 s · evolved: ×3 with 25% stun"]],
+  godActives:[["Mjolnir","Thor","evolve by minute 15"],["Ball Lightning","Thor","top god damage in Warden runs"],["Local Ragnarok","Odin","the boss burst"]],
+  passives:["Shadowblade","Overwhelming Potential","Ansuz","Mannaz","Self-sacrifice"],
+  routes:[
+   {gods:["Brokk & Sindri","Thor","Odin"],label:"best · untested",passives:[["Shadowblade",1],["Overwhelming Potential",1],["Ansuz",1],["Mannaz",1],["Self-sacrifice",1],["Shadowblade",2,"L8"],["Ansuz",2,"L8"],["Mannaz",2,"L8"],["Overwhelming Potential",2,"L8"],["Ansuz",3,"L15"]],note:"Class damage from Shadowblade and Mannaz, god damage from Ansuz and Overwhelming Potential. Self-sacrifice is one more revive, so one more stack and one more Rapture."},
+   {gods:["Thor","Skadi","Odin"],label:"no Brokk · untested",passives:[["Shadowblade",1],["Overwhelming Potential",1],["Might of Megingjord",1],["Self-sacrifice",1],["Hypothermia",1],["Shadowblade",2,"L8"],["Overwhelming Potential",2,"L8"],["Might of Megingjord",2,"L8"],["Hypothermia",2,"L8"],["Might of Megingjord",3,"L15"]],note:"Might of Megingjord replaces Ansuz for god damage. Hypothermia is +20% class damage and −20% cooldowns at low health, where this build lives."},
+   {gods:["Brokk & Sindri","Skadi","Njord"],label:"no Thor · untested",godActives:[["Frost Ring","Skadi","35% freeze in a 7 m ring"],["Arctic Arrow","Skadi","100% freeze, 3 s"],["Lost Drakkar","Njord","50% Curse at rank 3"]],passives:[["Shadowblade",1],["Mannaz",1],["Torrents",1],["Hypothermia",1],["Ansuz",1],["Shadowblade",2,"L8"],["Mannaz",2,"L8"],["Torrents",2,"L8"],["Hypothermia",2,"L8"],["Mannaz",3,"L15"]],note:"Class skills carry this draw: Shadowblade and Mannaz stack +95% before revives. Torrents cuts class and god cooldowns."}
+  ],
+  godTier:{"Brokk & Sindri":"S","Thor":"S","Odin":"A","Skadi":"A","Njord":"B","Nidhogg":"C","Loki":"C","Nerthus":"C","Freya":"C"},
+  godWhy:{"Brokk & Sindri":"Mannaz and Ansuz, three ranks each","Thor":"two actives + Overwhelming Potential","Freya":"reported locked for Kinslayer (community)","Odin":"Self-sacrifice = one more stack · Local Ragnarok","Skadi":"Hypothermia rides low health","Njord":"Torrents only","Nidhogg":"No Remorse only · All In blocks healing","Loki":"Parasite only","Nerthus":"Cure Wounds only"},
+  picks:{"Kinslayer":["Shadow Images","Fallen Valkyries","Shadowblade"],"Brokk & Sindri":["Mannaz","Ansuz"],"Thor":["Mjolnir","Ball Lightning","Overwhelming Potential","Might of Megingjord"],"Odin":["Self-sacrifice","Local Ragnarok","King of Gods"],"Skadi":["Hypothermia","Frost Ring","Arctic Arrow"],"Njord":["Torrents","Lost Drakkar"],"Nidhogg":["No Remorse"],"Loki":["Parasite"],"Nerthus":["Cure Wounds"]},
+  play:["<b>Deaths are the damage stat.</b> Each revive stacks +20% class and god damage and −15% damage reduction. Three stacks: +60% damage, −45% reduction.","<b>Die late, not early.</b> A stack at minute 5 makes the whole mid-run squishier. The boss window is where deaths happen anyway, and each one arms you for the rest of the fight.","<b>Buy all four Kinslayer virtues, Rapture first:</b> every revive becomes a 120 damage, 8 m blast.","<b>Skip every Attack card.</b> Stand & Fight, Teiwaz and Raido do nothing here.","<b>10 passive ranks:</b> five actives at rank 3 use 15 of ~25 level-ups."],
+  virtues:["Rapture","Revival","Power","Power Overwhelming","Calmness","Defence","Sturdiness","Transience"],
+  steps:[["Shadowblade on sight, both ranks","+50% class skill damage · rank 2 at L8"],["Shadow Images and Fallen Valkyries to rank 3 by L12","half the engine is class skills"],["Thor actives the moment Thor shows: Mjolnir, Ball Lightning","third god slot: Local Ragnarok, or the route's pick"],["Take Restless Spirit at the L10 subclass card","each death after this is a stack"],["Evolve from L18: Shadow Images, Mjolnir, Fallen Valkyries, Ball Lightning","then the route's rank 3 card"]],
+  notes:"Untested: no Kinslayer run is logged. Card numbers and level gates are from the installed game's Survivor_SkillDescription.csv and prefabHierarchy_skills.json (2026-09-16). Shadowblade carries an unlock requirement in the skill table. None of her four temple virtues are owned yet, and skill points cover all four (player, 2026-09-16). Unverified: whether revives from Self-sacrifice and the Revival virtue trigger Restless Spirit and Rapture (the table says only \"Trigger: Revive\"). Shadow Images' numbers assume all 7 decoys hit. Mjolnir and Ball Lightning notes come from Warden runs, a different hero. Freya is left out of every route: r/hordesofhel reports she is locked for Kinslayer (search summary, read 2026-09-16); the skill tables hold no such rule, so it is unverified."}
 ];
 
 /* ---------- state ---------- */
@@ -596,7 +710,12 @@ function allBuilds(){return [...BUILDS,...custom]}
 
 /* ---------- render ---------- */
 function renderSwitch(){
-  $("#buildRow").innerHTML=allBuilds().map(b=>`<button class="bt" type="button" data-b="${b.id}" aria-pressed="${b.id===current.id}">${ico(b.godActives[0]?b.godActives[0][0]:"Warden")}<span class="n">${esc(b.name)}</span><span class="k"><b class="who">${esc(b.character||"Warden")}</b> · ${esc(b.kicker)}${b.mine?` <span class="status st-mine">yours · ${esc(b.status||"draft")}</span>`:""}</span></button>`).join("")
+  const heroes=[...new Set(allBuilds().map(b=>b.character||"Warden"))];
+  const tag=b=>b.mine?`<span class="status st-mine">yours · ${esc(b.status||"draft")}</span>`:b.maxDifficulty?`<span class="status st-tested">${esc(b.maxDifficulty)}</span>`:`<span class="status st-untested">untested</span>`;
+  $("#buildRow").innerHTML=heroes.map((h,i)=>{
+    const list=allBuilds().filter(b=>(b.character||"Warden")===h),on=(current.character||"Warden")===h;
+    return`<div class="hpick"><button class="bt" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="bm-${i}" data-on="${on}" data-menu="bm-${i}">${ico(h)}<span class="n">${esc(h)}</span><span class="k">${on?esc(current.name):`${list.length} build${list.length>1?"s":""}`}</span><span class="chev" aria-hidden="true"></span></button>`
+     +`<div class="bmenu" id="bm-${i}" role="menu" aria-label="${esc(h)} builds" hidden>${list.map(b=>`<button class="mi" type="button" role="menuitem" data-b="${b.id}" aria-current="${b.id===current.id}">${ico(b.godActives[0]?b.godActives[0][0]:h)}<span class="n">${esc(b.name)}</span><span class="k">${esc(b.kicker)}</span>${tag(b)}</button>`).join("")}</div></div>`}).join("")
    +`<button class="bt new" type="button" data-b="__forge">${ico("Warden")}<span class="n">Forge a build</span><span class="k">copy the current one and edit</span></button>`;
 }
 function renderRail(){
@@ -614,6 +733,8 @@ function renderLoadout(){
   if(b.maxDifficulty){dp.textContent="Tested: "+b.maxDifficulty;dp.classList.remove("untested")}
   else{dp.textContent="Untested";dp.classList.add("untested")}
   $("#thesis").innerHTML=b.thesis||"";
+  $("#tagline").textContent=b.tagline||"";$("#hype").textContent=b.spirit||"";
+  $("#bhero").classList.toggle("plain",!b.spirit);
   const slots=[];
   const alt=t=>t?`<span class="alt">${esc(t)}</span>`:"";
   b.classActives.forEach((c,i)=>slots.push(`<div class="slot class"${tipAttr(c[0])}><span class="lab">class ${i+1}</span>${ico(c[0])}<span class="nm">${esc(c[0])}</span>${alt(c[1])}</div>`));
@@ -624,7 +745,7 @@ function renderLoadout(){
   slots.push(`<div class="slot gear"${tipAttr(b.subclass[0])}><span class="lab">subclass</span>${ico(b.subclass[0])}<span class="nm">${esc(b.subclass[0])}</span>${alt(b.subclass[1])}</div>`);
   $("#slots").innerHTML=slots.join("");$("#slots").style.setProperty("--n",String(slots.length));
   renderPassives();
-  $("#innate").innerHTML=[["Ground Smash","dash becomes a shield smash"],["Tower Shield","blocks incoming hits"],["Iron Within","health, immune to slow"]].map(x=>`<span class="pchip"${tipAttr(x[0],desc(x[0])?"":x[1])}>${ico(x[0])}<span>${esc(x[0])}</span></span>`).join("");
+  $("#innate").innerHTML=(b.innate||[["Ground Smash","dash becomes a shield smash"],["Tower Shield","blocks incoming hits"],["Iron Within","health, immune to slow"]]).map(x=>`<span class="pchip"${tipAttr(x[0],b.innate||!desc(x[0])?x[1]:"")}>${ico(x[0])}<span>${esc(x[0])}</span></span>`).join("");
   $("#play").innerHTML=(b.play||[]).map(p=>`<p>${p}</p>`).join("")+(b.notes?`<p class="caveat">${esc(b.notes)}</p>`:"");
 }
 /* a build with routes shows one passive list per god draw; each entry is one pick: [passive, rank, level gate] */
@@ -670,7 +791,8 @@ function findCard(g,name){for(const t of ["S","A","B","F"]){const c=(CARDS[g]&&C
 function renderOrder(){
   const b=current;
   $("#steps").innerHTML=(b.steps||[]).map(s=>`<li><div>${esc(s[0])}<span>${esc(s[1]||"")}</span></div></li>`).join("");
-  const marks=[[1,"actives · most passives",6],[6,"active rank 2",21],[8,"passive rank 2 · Pulverize unlocks",34],[10,"subclass card",47],[12,"active rank 3",60],[15,"passive rank 3 · Resonance unlocks",74],[18,"active EVOLVES · its 4th pick",90,1]];
+  const unlocks={Warden:["Pulverize","Resonance"],Kinslayer:["Faithless Leap","Deathly Hallows"]}[b.character||"Warden"]||["",""];
+  const marks=[[1,"actives · most passives",6],[6,"active rank 2",21],[8,"passive rank 2"+(unlocks[0]?` · ${unlocks[0]} unlocks`:""),34],[10,"subclass card",47],[12,"active rank 3",60],[15,"passive rank 3"+(unlocks[1]?` · ${unlocks[1]} unlocks`:""),74],[18,"active EVOLVES · its 4th pick",90,1]];
   $("#track").innerHTML=`<div class="line"></div>`+marks.map(m=>`<div class="mark${m[3]?" big":""}" style="left:${m[2]}%"><div class="lv">L${m[0]}</div><div class="dot"></div><div class="what">${m[1]}</div></div>`).join("");
 }
 function renderVirtues(){
@@ -733,10 +855,24 @@ function localRead(){try{return JSON.parse(localStorage.getItem("wf-builds")||"[
 function localWrite(){try{localStorage.setItem("wf-builds",JSON.stringify(custom))}catch(e){}}
 
 /* ---------- wiring ---------- */
+/* hero build menus: one open at a time; outside click or Escape closes, arrows move between builds */
+function closeMenus(){document.querySelectorAll("[data-menu][aria-expanded=\"true\"]").forEach(b=>{b.setAttribute("aria-expanded","false");$("#"+b.dataset.menu).hidden=true})}
+document.addEventListener("keydown",e=>{
+  const m=e.target.closest(".bmenu");
+  if(e.key==="Escape"){const open=$("[data-menu][aria-expanded=\"true\"]");if(open){closeMenus();open.focus()}return}
+  if(m&&(e.key==="ArrowDown"||e.key==="ArrowUp")){e.preventDefault();const it=[...m.querySelectorAll(".mi")],i=it.indexOf(e.target);it[(i+(e.key==="ArrowDown"?1:it.length-1))%it.length].focus()}
+});
 document.addEventListener("click",e=>{
+  const mb=e.target.closest("[data-menu]");
+  if(mb){const open=mb.getAttribute("aria-expanded")!=="true";closeMenus();
+    if(open){mb.setAttribute("aria-expanded","true");const m=$("#"+mb.dataset.menu);m.hidden=false;(m.querySelector("[aria-current=\"true\"]")||m.querySelector(".mi")).focus()}return}
+  if(!e.target.closest(".bmenu"))closeMenus();
   const bt=e.target.closest("[data-b]");
   if(bt){const id=bt.dataset.b;if(id==="__forge"){$("#forge").scrollIntoView({behavior:"smooth"});return}
-    const b=allBuilds().find(x=>x.id===id);if(b){current=b;routeIx=0;renderAll();window.scrollTo({top:$("#loadout").offsetTop-80,behavior:"smooth"})}return}
+    const b=allBuilds().find(x=>x.id===id);if(b){current=b;routeIx=0;renderAll();
+      /* land the build title just under the pinned switcher, whatever its height */
+      window.scrollTo({top:$("#loadout").getBoundingClientRect().top+scrollY-sw.offsetHeight-8,behavior:"smooth"});
+      const hb=$("#buildRow [data-on=\"true\"]");if(hb)hb.focus({preventScroll:true})}return}
   const rt=e.target.closest("#routes [data-r]");if(rt){routeIx=+rt.dataset.r;renderLoadout();return}
   const more=e.target.closest(".board .more");if(more){const bd=more.closest(".board");bd.classList.toggle("open");more.textContent=bd.classList.contains("open")?"hide filler and reroll cards":"show filler and reroll cards";return}
   const pl=e.target.closest("#ePassList button");if(pl){ePass.splice(+pl.dataset.i,1);renderPassList();return}
@@ -756,6 +892,7 @@ addEventListener("scroll",hideTip,{passive:true});
 /* the switcher only needs its backdrop once it is pinned over content */
 const sw=$("#switch");const pin=()=>sw.classList.toggle("stuck",sw.getBoundingClientRect().top<=0&&scrollY>0);
 addEventListener("scroll",pin,{passive:true});pin();
+new ResizeObserver(()=>document.documentElement.style.setProperty("--switch-h",sw.offsetHeight+"px")).observe(sw);
 $("#ePassAdd").addEventListener("change",e=>{const v=e.target.value;if(v&&!ePass.includes(v)){ePass.push(v);renderPassList()}e.target.value=""});
 $("#eSave").addEventListener("click",saveBuild);
 $("#eFork").addEventListener("click",()=>fillEditor(current));
